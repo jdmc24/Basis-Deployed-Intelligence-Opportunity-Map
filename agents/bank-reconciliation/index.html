@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Reconciliation Agent | Basis Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Oxygen:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --basis-teal: #41666F;
+            --basis-teal-light: #5a8a95;
+            --basis-teal-dark: #254951;
+            --bg-primary: #121518;
+            --bg-secondary: #1a1d21;
+            --bg-tertiary: #22262b;
+            --text-primary: #e8eaed;
+            --text-secondary: #9aa0a6;
+            --text-muted: #6b7280;
+            --border-color: #2d3238;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --error: #ef4444;
+            --info: #60a5fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Oxygen', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .header h1 span {
+            color: var(--basis-teal-light);
+        }
+
+        .back-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--basis-teal-light);
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .intro {
+            margin-bottom: 2rem;
+        }
+
+        .intro h2 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .intro p {
+            color: var(--text-secondary);
+            max-width: 800px;
+        }
+
+        /* Upload Grid */
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .upload-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .panel-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--basis-teal-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--basis-teal-light);
+            background: rgba(90, 138, 149, 0.1);
+        }
+
+        .upload-area.loaded {
+            border-color: var(--success);
+            background: rgba(74, 222, 128, 0.1);
+        }
+
+        .upload-area svg {
+            width: 40px;
+            height: 40px;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .upload-area.loaded svg {
+            color: var(--success);
+        }
+
+        .upload-area p {
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .upload-area span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .upload-area .file-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--success);
+            margin-top: 0.5rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Sample Data */
+        .sample-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .sample-section p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .sample-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .btn:hover {
+            border-color: var(--basis-teal-light);
+            background: var(--bg-secondary);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--basis-teal);
+            border-color: var(--basis-teal);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--basis-teal-light);
+            border-color: var(--basis-teal-light);
+        }
+
+        .btn small {
+            display: block;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-top: 0.25rem;
+        }
+
+        /* Reconcile Button */
+        .reconcile-section {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .btn-reconcile {
+            padding: 1rem 3rem;
+            font-size: 1rem;
+        }
+
+        /* OpenAI Config */
+        .config-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .config-section label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .config-section input {
+            width: 100%;
+            padding: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+        }
+
+        .config-section input:focus {
+            outline: none;
+            border-color: var(--basis-teal-light);
+        }
+
+        .config-section .hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        /* Summary Cards - Two Row Layout */
+        .summary-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-row-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .row-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--basis-teal-light);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .summary-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+        }
+
+        .summary-row.financial {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        @media (max-width: 768px) {
+            .summary-row {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .summary-row.financial {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .summary-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .summary-card.highlight {
+            border-color: var(--basis-teal);
+            background: rgba(90, 138, 149, 0.1);
+        }
+
+        .summary-card.warning {
+            border-color: var(--warning);
+            background: rgba(251, 191, 36, 0.1);
+        }
+
+        .summary-card.success {
+            border-color: var(--success);
+            background: rgba(74, 222, 128, 0.1);
+        }
+
+        .summary-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .summary-value.currency {
+            font-size: 1.25rem;
+        }
+
+        .summary-card.warning .summary-value {
+            color: var(--warning);
+        }
+
+        .summary-card.success .summary-value {
+            color: var(--success);
+        }
+
+        .summary-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.25rem;
+        }
+
+        /* Discrepancy List */
+        .discrepancy-panel {
+            margin-bottom: 1.5rem;
+        }
+
+        .discrepancy-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .discrepancy-item {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+        }
+
+        .discrepancy-item.expanded {
+            border-color: var(--basis-teal);
+        }
+
+        .discrepancy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            cursor: pointer;
+        }
+
+        .discrepancy-type {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .discrepancy-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .badge-missing-bank {
+            background: rgba(251, 191, 36, 0.2);
+            color: var(--warning);
+        }
+
+        .badge-missing-books {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error);
+        }
+
+        .badge-mismatch {
+            background: rgba(96, 165, 250, 0.2);
+            color: var(--info);
+        }
+
+        .badge-duplicate {
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+        }
+
+        .discrepancy-desc {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .discrepancy-amount {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .discrepancy-details {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .discrepancy-item.expanded .discrepancy-details {
+            display: block;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .detail-label {
+            color: var(--text-muted);
+        }
+
+        .detail-value {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        .suggestion-box {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            border-left: 3px solid var(--basis-teal);
+        }
+
+        .suggestion-label {
+            font-size: 0.75rem;
+            color: var(--basis-teal-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .suggestion-text {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+
+        .suggestion-text.loading {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Matched Transactions */
+        .matched-panel {
+            margin-top: 1.5rem;
+        }
+
+        .matched-summary {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .matched-table-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        .matched-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        .matched-table th {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
+            padding: 0.6rem 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+        }
+
+        .matched-table td {
+            padding: 0.6rem 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .matched-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .matched-table tr:hover {
+            background: rgba(90, 138, 149, 0.05);
+        }
+
+        .match-score {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            background: rgba(74, 222, 128, 0.2);
+            color: var(--success);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 3rem;
+            padding: 1.5rem 2rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer a {
+            color: var(--basis-teal-light);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--basis-teal-light);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1><span>//</span> Bank Reconciliation Agent</h1>
+            <a href="../../index.html" class="back-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Target Map
+            </a>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="intro">
+            <h2>Automated Bank Reconciliation</h2>
+            <p>Upload your bank statement and book entries to automatically match transactions and identify discrepancies. Uses smart matching on amount, date, description, and reference numbers.</p>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="upload-grid">
+            <div class="panel">
+                <div class="panel-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="3" y1="9" x2="21" y2="9"/>
+                        <line x1="9" y1="21" x2="9" y2="9"/>
+                    </svg>
+                    Bank Statement
+                </div>
+                <div class="upload-area" id="bank-upload">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <p>Drop bank CSV here</p>
+                    <span>or click to browse</span>
+                    <div class="file-name" id="bank-file-name"></div>
+                    <input type="file" class="file-input" id="bank-input" accept=".csv">
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                    </svg>
+                    Book Entries
+                </div>
+                <div class="upload-area" id="books-upload">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <p>Drop books CSV here</p>
+                    <span>or click to browse</span>
+                    <div class="file-name" id="books-file-name"></div>
+                    <input type="file" class="file-input" id="books-input" accept=".csv">
+                </div>
+            </div>
+        </div>
+
+        <!-- Sample Data & Config -->
+        <div class="upload-grid">
+            <div class="panel">
+                <div class="sample-section" style="border-top: none; padding-top: 0; margin-top: 0;">
+                    <p>Or try with sample data:</p>
+                    <div class="sample-buttons">
+                        <button class="btn" id="load-clean">
+                            Clean Scenario
+                            <small>~25 transactions, 4 discrepancies</small>
+                        </button>
+                        <button class="btn" id="load-messy">
+                            Messy Scenario
+                            <small>~35 transactions, 12+ discrepancies</small>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="config-section" style="border-top: none; padding-top: 0; margin-top: 0;">
+                    <label for="openai-key">OpenAI API Key (optional)</label>
+                    <input type="password" id="openai-key" placeholder="sk-...">
+                    <p class="hint">For AI-generated fix suggestions. Leave empty for standard suggestions.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reconcile Button -->
+        <div class="reconcile-section">
+            <button class="btn btn-primary btn-reconcile" id="reconcile-btn" disabled>
+                Reconcile Transactions
+            </button>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="results-section">
+            <!-- Summary Cards -->
+            <div class="summary-container" id="summary-container"></div>
+
+            <!-- Discrepancies -->
+            <div class="panel discrepancy-panel">
+                <div class="panel-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    Discrepancies Found
+                </div>
+                <div class="discrepancy-list" id="discrepancy-list"></div>
+            </div>
+
+            <!-- Matched Transactions -->
+            <div class="panel matched-panel">
+                <div class="panel-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Matched Transactions
+                </div>
+                <div class="matched-summary" id="matched-summary"></div>
+                <div class="matched-table-container">
+                    <table class="matched-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Bank Amount</th>
+                                <th>Book Amount</th>
+                                <th>Match</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matched-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>Part of the <a href="../../index.html">Basis Deployed Intelligence</a> application for Jake McCorkle</p>
+    </footer>
+
+    <script>
+        // ===========================================
+        // SAMPLE DATA (EMBEDDED)
+        // ===========================================
+
+        const SAMPLE_CLEAN_BANK = `date,description,amount,reference,type
+2024-01-02,STRIPE TRANSFER 240102,4250.00,STR-001,deposit
+2024-01-03,GUSTO PAYROLL,-3200.00,PAY-001,withdrawal
+2024-01-03,GUSTO TAX,-485.00,PAY-001T,withdrawal
+2024-01-05,AMZN MKTP US,-89.99,AMZ-442,withdrawal
+2024-01-08,CHECK DEP 1042,1500.00,CHK-1042,deposit
+2024-01-09,COMCAST BUSINESS,-199.00,COM-119,withdrawal
+2024-01-10,STRIPE TRANSFER 240110,6780.00,STR-002,deposit
+2024-01-12,STAPLES DIRECT,-156.78,STP-221,withdrawal
+2024-01-15,GUSTO PAYROLL,-3200.00,PAY-002,withdrawal
+2024-01-15,GUSTO TAX,-485.00,PAY-002T,withdrawal
+2024-01-16,ZOOM VIDEO,-149.90,ZM-8821,withdrawal
+2024-01-18,DELTA AIR,-387.00,DL-9912,withdrawal
+2024-01-22,STRIPE TRANSFER 240122,3920.00,STR-003,deposit
+2024-01-24,PG&E ELECTRIC,-342.00,PGE-1124,withdrawal
+2024-01-25,BANK FEE - JANUARY,-25.00,FEE-0124,withdrawal
+2024-01-29,GUSTO PAYROLL,-3200.00,PAY-003,withdrawal
+2024-01-29,GUSTO TAX,-485.00,PAY-003T,withdrawal
+2024-01-30,WIRE IN - CLIENT ABC,15000.00,WIRE-5521,deposit
+2024-02-01,INTEREST EARNED,12.34,INT-0201,deposit
+2024-02-05,GITHUB INC,-21.00,GH-1182,withdrawal
+2024-02-07,INSURANCE PMT,-450.00,INS-2024,withdrawal
+2024-02-12,CHECK DEP 1089,2750.00,CHK-1089,deposit
+2024-02-14,STRIPE TRANSFER 240214,7200.00,STR-004,deposit
+2024-02-19,USPS PO BOX,-230.00,USPS-442,withdrawal`;
+
+        const SAMPLE_CLEAN_BOOKS = `date,description,amount,reference,account,category
+2024-01-02,Stripe Revenue,4250.00,STR-001,Checking,Revenue
+2024-01-03,Gusto - Payroll,-3200.00,PAY-001,Checking,Payroll
+2024-01-03,Gusto - Payroll Tax,-485.00,PAY-001T,Checking,Payroll Tax
+2024-01-05,Amazon - Office Supplies,-89.99,AMZ-442,Checking,Office Supplies
+2024-01-08,Client Payment - Invoice 1042,1500.00,CHK-1042,Checking,Revenue
+2024-01-09,Comcast Internet,-199.00,COM-119,Checking,Utilities
+2024-01-10,Stripe Revenue,6780.00,STR-002,Checking,Revenue
+2024-01-11,Adobe Creative Cloud,-59.99,ADBE-112,Checking,Software
+2024-01-12,Staples - Supplies,-156.78,STP-221,Checking,Office Supplies
+2024-01-15,Gusto - Payroll,-3200.00,PAY-002,Checking,Payroll
+2024-01-15,Gusto - Payroll Tax,-485.00,PAY-002T,Checking,Payroll Tax
+2024-01-16,Zoom Subscription,-149.90,ZM-8821,Checking,Software
+2024-01-18,Delta - Client Travel,-387.00,DL-9912,Checking,Travel
+2024-01-22,Stripe Revenue,3920.00,STR-003,Checking,Revenue
+2024-01-24,PG&E Utilities,-342.00,PGE-1124,Checking,Utilities
+2024-01-25,Bank Service Fee,-25.00,FEE-0124,Checking,Bank Fees
+2024-01-29,Gusto - Payroll,-3200.00,PAY-003,Checking,Payroll
+2024-01-29,Gusto - Payroll Tax,-485.00,PAY-003T,Checking,Payroll Tax
+2024-01-30,Wire - ABC Corp Payment,15000.00,WIRE-5521,Checking,Revenue
+2024-02-01,Interest Income,12.34,INT-0201,Checking,Interest
+2024-02-05,GitHub Subscription,-21.00,GH-1182,Checking,Software
+2024-02-07,State Farm Insurance,-425.00,INS-2024,Checking,Insurance
+2024-02-12,Client Payment - Invoice 1089,2750.00,CHK-1089,Checking,Revenue
+2024-02-12,Client Payment - Invoice 1089,2750.00,CHK-1089,Checking,Revenue
+2024-02-14,Stripe Revenue,7200.00,STR-004,Checking,Revenue`;
+
+        const SAMPLE_MESSY_BANK = `date,description,amount,reference,type
+2024-01-02,ACH CREDIT STRIPE,8500.00,STR-101,deposit
+2024-01-03,ADP PAYROLL,-12450.00,ADP-0103,withdrawal
+2024-01-03,ADP TAX PMT,-2890.00,ADP-0103T,withdrawal
+2024-01-04,THOMSON REUTERS,-425.00,TR-2024,withdrawal
+2024-01-05,AICPA DUES,-495.00,AICPA-24,withdrawal
+2024-01-08,CCH SOFTWARE,-1200.00,CCH-8812,withdrawal
+2024-01-09,CLIENT PMT SMITH,850.00,DEP-4521,deposit
+2024-01-10,OFFICE DEPOT,-234.56,OD-9921,withdrawal
+2024-01-12,CAMICO INSURANCE,-2400.00,CAM-2024,withdrawal
+2024-01-15,BUILDING RENT,-4500.00,RENT-0115,withdrawal
+2024-01-15,ADP PAYROLL,-12450.00,ADP-0115,withdrawal
+2024-01-15,ADP TAX PMT,-2890.00,ADP-0115T,withdrawal
+2024-01-17,CLIENT PMT ACME,1200.00,DEP-4523,deposit
+2024-01-18,JETBLUE AIR,-342.00,JB-8821,withdrawal
+2024-01-19,HILTON HOTELS,-198.00,HLT-442,withdrawal
+2024-01-22,ACH CREDIT STRIPE,12500.00,STR-102,deposit
+2024-01-23,DEXT RECEIPT BANK,-50.00,DEXT-123,withdrawal
+2024-01-24,KARBON SOFTWARE,-99.00,KRB-2024,withdrawal
+2024-01-25,VERIZON WIRELESS,-245.00,VZ-0125,withdrawal
+2024-01-26,LACERTE TAX,-3200.00,LAC-2024,withdrawal
+2024-01-29,ADP PAYROLL,-12450.00,ADP-0129,withdrawal
+2024-01-29,ADP TAX PMT,-2890.00,ADP-0129T,withdrawal
+2024-01-30,WIRE IN APEX CORP,7500.00,WIRE-8821,deposit
+2024-01-31,BANK ANALYSIS FEE,-35.00,FEE-0131,withdrawal
+2024-02-02,CLIENT PMT DAVIS,425.00,DEP-4530,deposit
+2024-02-05,CALENDLY,-16.00,CAL-0205,withdrawal
+2024-02-06,WOLTERS KLUWER,-650.00,WK-0206,withdrawal
+2024-02-08,ZOOM VIDEO,-199.90,ZM-0208,withdrawal
+2024-02-12,ADP PAYROLL,-12450.00,ADP-0212,withdrawal
+2024-02-12,ADP TAX PMT,-2890.00,ADP-0212T,withdrawal
+2024-02-14,CLIENT PMT MONTHLY,950.00,DEP-4535,deposit
+2024-02-15,RENT FEBRUARY,-4500.00,RENT-0215,withdrawal
+2024-02-19,UBER TRIP,-24.50,UBER-219,withdrawal
+2024-02-22,UNKNOWN MERCHANT,-125.00,UNK-222,withdrawal
+2024-02-26,ADP PAYROLL,-12450.00,ADP-0226,withdrawal
+2024-02-26,ADP TAX PMT,-2890.00,ADP-0226T,withdrawal
+2024-02-28,WIRE IN SMITH HLDGS,4000.00,WIRE-9921,deposit`;
+
+        const SAMPLE_MESSY_BOOKS = `date,description,amount,reference,account,category
+2024-01-02,Stripe - Client Retainer,8500.00,STR-101,Operating,Revenue
+2024-01-03,ADP - Staff Payroll,-12450.00,ADP-0103,Operating,Payroll
+2024-01-03,ADP - Payroll Tax,-2890.00,ADP-0103T,Operating,Payroll Tax
+2024-01-04,Thomson Reuters Checkpoint,-425.00,TR-2024,Operating,Software
+2024-01-05,AICPA Membership,-495.00,AICPA-24,Operating,Prof Development
+2024-01-07,Becker CPE Course,-299.00,BECK-107,Operating,Prof Development
+2024-01-08,CCH Axcess Tax,-1200.00,CCH-8812,Operating,Software
+2024-01-09,Smith Tax Prep Payment,850.00,DEP-4521,Operating,Revenue
+2024-01-10,Office Depot Supplies,-243.56,OD-9921,Operating,Office Supplies
+2024-01-12,CAMICO E&O Insurance,-2400.00,CAM-2024,Operating,Insurance
+2024-01-14,State CPA Conference,-450.00,CONF-114,Operating,Prof Development
+2024-01-15,Office Rent - January,-4500.00,RENT-0115,Operating,Rent
+2024-01-15,ADP - Staff Payroll,-12450.00,ADP-0115,Operating,Payroll
+2024-01-15,ADP - Payroll Tax,-2890.00,ADP-0115T,Operating,Payroll Tax
+2024-01-17,Acme Bookkeeping Fee,1200.00,DEP-4523,Operating,Revenue
+2024-01-17,Acme Bookkeeping Fee,1200.00,DEP-4523,Operating,Revenue
+2024-01-18,JetBlue - Client Travel,-342.00,JB-8821,Operating,Travel
+2024-01-19,Hilton - Conference Stay,-189.00,HLT-442,Operating,Travel
+2024-01-20,Xero Partner Subscription,-50.00,XERO-120,Operating,Software
+2024-01-22,Stripe - Apex Retainer,12500.00,STR-102,Operating,Revenue
+2024-01-23,Dext Receipt Bank,-50.00,DEXT-123,Operating,Software
+2024-01-24,Karbon Workflow,-99.00,KRB-2024,Operating,Software
+2024-01-25,Verizon Business,-245.00,VZ-0125,Operating,Utilities
+2024-01-26,Lacerte Tax Software,-3200.00,LAC-2024,Operating,Software
+2024-01-29,ADP - Staff Payroll,-12450.00,ADP-0129,Operating,Payroll
+2024-01-29,ADP - Payroll Tax,-2890.00,ADP-0129T,Operating,Payroll Tax
+2024-01-30,Wire - Apex Corp,7500.00,WIRE-8821,Operating,Revenue
+2024-01-31,Bank Service Fee,-35.00,FEE-0131,Operating,Bank Fees
+2024-02-01,SafeSend Returns,-75.00,SS-0201,Operating,Software
+2024-02-02,Davis 1040 Prep,425.00,DEP-4530,Operating,Revenue
+2024-02-05,Calendly Scheduling,-16.00,CAL-0205,Operating,Software
+2024-02-06,CCH Research,-650.00,WK-0206,Operating,Software
+2024-02-08,Zoom Video,-199.90,ZM-0208,Operating,Software
+2024-02-08,Zoom Video,-199.90,ZM-0208,Operating,Software
+2024-02-12,ADP - Staff Payroll,-12450.00,ADP-0212,Operating,Payroll
+2024-02-12,ADP - Payroll Tax,-2890.00,ADP-0212T,Operating,Payroll Tax
+2024-02-14,Monthly Bookkeeping Client,950.00,DEP-4535,Operating,Revenue
+2024-02-15,Office Rent - February,-4500.00,RENT-0215,Operating,Rent
+2024-02-26,ADP - Staff Payroll,-12450.00,ADP-0226,Operating,Payroll
+2024-02-26,ADP - Payroll Tax,-2809.00,ADP-0226T,Operating,Payroll Tax
+2024-02-28,Wire - Smith Holdings,4000.00,WIRE-9921,Operating,Revenue
+2024-02-28,ProConnect Tax,-89.00,PCT-228,Operating,Software`;
+
+        // ===========================================
+        // STATE
+        // ===========================================
+
+        let bankData = null;
+        let booksData = null;
+        let reconciliationResults = null;
+
+        // ===========================================
+        // CSV PARSING
+        // ===========================================
+
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            const records = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = parseCSVLine(lines[i]);
+                if (values.length === headers.length) {
+                    const record = {};
+                    headers.forEach((header, index) => {
+                        record[header] = values[index];
+                    });
+                    records.push(record);
+                }
+            }
+            return records;
+        }
+
+        function parseCSVLine(line) {
+            const values = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    values.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            values.push(current.trim());
+            return values;
+        }
+
+        // ===========================================
+        // SMART MATCHING ALGORITHM
+        // ===========================================
+
+        function normalizeAmount(amount) {
+            if (typeof amount === 'number') return amount;
+            return parseFloat(String(amount).replace(/[^0-9.-]/g, '')) || 0;
+        }
+
+        function parseDate(dateStr) {
+            return new Date(dateStr);
+        }
+
+        function daysDiff(date1, date2) {
+            const d1 = parseDate(date1);
+            const d2 = parseDate(date2);
+            return Math.abs((d1 - d2) / (1000 * 60 * 60 * 24));
+        }
+
+        function normalizeDescription(desc) {
+            return String(desc).toUpperCase().replace(/[^A-Z0-9]/g, '');
+        }
+
+        function calculateMatchScore(bankTxn, bookTxn) {
+            let score = 0;
+            const bankAmount = normalizeAmount(bankTxn.amount);
+            const bookAmount = normalizeAmount(bookTxn.amount);
+
+            // Amount match (most important)
+            if (Math.abs(bankAmount - bookAmount) < 0.01) {
+                score += 50;
+            } else if (Math.abs(bankAmount - bookAmount) < 1) {
+                score += 30;
+            }
+
+            // Reference match
+            if (bankTxn.reference && bookTxn.reference) {
+                const bankRef = normalizeDescription(bankTxn.reference);
+                const bookRef = normalizeDescription(bookTxn.reference);
+                if (bankRef === bookRef) {
+                    score += 30;
+                } else if (bankRef.includes(bookRef) || bookRef.includes(bankRef)) {
+                    score += 15;
+                }
+            }
+
+            // Date proximity (within 5 days)
+            const days = daysDiff(bankTxn.date, bookTxn.date);
+            if (days === 0) {
+                score += 15;
+            } else if (days <= 3) {
+                score += 10;
+            } else if (days <= 5) {
+                score += 5;
+            }
+
+            // Description similarity
+            const bankDesc = normalizeDescription(bankTxn.description);
+            const bookDesc = normalizeDescription(bookTxn.description);
+            const commonWords = findCommonWords(bankDesc, bookDesc);
+            score += Math.min(commonWords * 2, 10);
+
+            return score;
+        }
+
+        function findCommonWords(str1, str2) {
+            const words1 = str1.match(/[A-Z]{3,}/g) || [];
+            const words2 = str2.match(/[A-Z]{3,}/g) || [];
+            return words1.filter(w => words2.includes(w)).length;
+        }
+
+        // ===========================================
+        // RECONCILIATION ENGINE
+        // ===========================================
+
+        function reconcile(bankRecords, bookRecords) {
+            const matches = [];
+            const discrepancies = [];
+            const usedBankIndices = new Set();
+            const usedBookIndices = new Set();
+
+            // Find duplicates in books first
+            const bookDuplicates = findDuplicates(bookRecords);
+            bookDuplicates.forEach(dup => {
+                discrepancies.push({
+                    type: 'duplicate',
+                    description: dup.description,
+                    amount: normalizeAmount(dup.amount),
+                    date: dup.date,
+                    reference: dup.reference,
+                    source: 'books',
+                    count: dup.count
+                });
+            });
+
+            // Mark duplicate indices as used (keep first occurrence)
+            const seenRefs = {};
+            bookRecords.forEach((book, idx) => {
+                const key = `${book.reference}-${normalizeAmount(book.amount)}`;
+                if (seenRefs[key] !== undefined) {
+                    usedBookIndices.add(idx);
+                } else {
+                    seenRefs[key] = idx;
+                }
+            });
+
+            // Match bank to books
+            bankRecords.forEach((bank, bankIdx) => {
+                let bestMatch = null;
+                let bestScore = 0;
+                let bestBookIdx = -1;
+
+                bookRecords.forEach((book, bookIdx) => {
+                    if (usedBookIndices.has(bookIdx)) return;
+
+                    const score = calculateMatchScore(bank, book);
+                    if (score > bestScore && score >= 50) {
+                        bestScore = score;
+                        bestMatch = book;
+                        bestBookIdx = bookIdx;
+                    }
+                });
+
+                if (bestMatch) {
+                    const bankAmount = normalizeAmount(bank.amount);
+                    const bookAmount = normalizeAmount(bestMatch.amount);
+
+                    if (Math.abs(bankAmount - bookAmount) >= 0.01) {
+                        // Amount mismatch
+                        discrepancies.push({
+                            type: 'mismatch',
+                            description: bank.description,
+                            bankAmount: bankAmount,
+                            bookAmount: bookAmount,
+                            difference: bankAmount - bookAmount,
+                            date: bank.date,
+                            reference: bank.reference
+                        });
+                    }
+
+                    matches.push({
+                        bank: bank,
+                        book: bestMatch,
+                        score: bestScore
+                    });
+
+                    usedBankIndices.add(bankIdx);
+                    usedBookIndices.add(bestBookIdx);
+                }
+            });
+
+            // Find unmatched bank transactions (missing from books)
+            bankRecords.forEach((bank, idx) => {
+                if (!usedBankIndices.has(idx)) {
+                    discrepancies.push({
+                        type: 'missing_books',
+                        description: bank.description,
+                        amount: normalizeAmount(bank.amount),
+                        date: bank.date,
+                        reference: bank.reference
+                    });
+                }
+            });
+
+            // Find unmatched book transactions (missing from bank)
+            bookRecords.forEach((book, idx) => {
+                if (!usedBookIndices.has(idx)) {
+                    discrepancies.push({
+                        type: 'missing_bank',
+                        description: book.description,
+                        amount: normalizeAmount(book.amount),
+                        date: book.date,
+                        reference: book.reference
+                    });
+                }
+            });
+
+            return { matches, discrepancies };
+        }
+
+        function findDuplicates(records) {
+            const seen = {};
+            const duplicates = [];
+
+            records.forEach(record => {
+                const key = `${record.reference}-${normalizeAmount(record.amount)}-${record.date}`;
+                if (seen[key]) {
+                    seen[key].count++;
+                } else {
+                    seen[key] = { ...record, count: 1 };
+                }
+            });
+
+            Object.values(seen).forEach(record => {
+                if (record.count > 1) {
+                    duplicates.push(record);
+                }
+            });
+
+            return duplicates;
+        }
+
+        // ===========================================
+        // SUGGESTIONS
+        // ===========================================
+
+        function getStandardSuggestion(discrepancy) {
+            switch (discrepancy.type) {
+                case 'missing_books':
+                    return `Record this transaction in your books: ${discrepancy.description} for ${formatCurrency(discrepancy.amount)} on ${discrepancy.date}`;
+                case 'missing_bank':
+                    return `Verify this transaction: "${discrepancy.description}" appears in books but not on bank statement. Check if it cleared, was voided, or recorded in error.`;
+                case 'mismatch':
+                    return `Investigate the ${formatCurrency(Math.abs(discrepancy.difference))} difference. Bank shows ${formatCurrency(discrepancy.bankAmount)}, books show ${formatCurrency(discrepancy.bookAmount)}. Check for data entry errors or partial payments.`;
+                case 'duplicate':
+                    return `Remove duplicate entry: "${discrepancy.description}" is recorded ${discrepancy.count} times. Delete the extra ${discrepancy.count - 1} occurrence(s).`;
+                default:
+                    return 'Review this discrepancy manually.';
+            }
+        }
+
+        async function getAISuggestion(discrepancy, apiKey) {
+            const context = JSON.stringify(discrepancy);
+
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo',
+                        messages: [{
+                            role: 'system',
+                            content: `You are an expert accountant helping with bank reconciliation. Provide a specific, actionable suggestion to resolve each discrepancy. Be concise (1-2 sentences). Speak directly to the accountant.`
+                        }, {
+                            role: 'user',
+                            content: `How should I resolve this bank reconciliation discrepancy?\n\n${context}`
+                        }],
+                        temperature: 0.3,
+                        max_tokens: 150
+                    })
+                });
+
+                const data = await response.json();
+                return data.choices[0].message.content.trim();
+            } catch (error) {
+                console.error('AI suggestion failed:', error);
+                return getStandardSuggestion(discrepancy);
+            }
+        }
+
+        // ===========================================
+        // UI RENDERING
+        // ===========================================
+
+        function formatCurrency(amount) {
+            const num = parseFloat(amount) || 0;
+            const formatted = Math.abs(num).toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            });
+            return num < 0 ? `(${formatted})` : formatted;
+        }
+
+        function renderSummary(results, bankRecords, bookRecords) {
+            const { matches, discrepancies } = results;
+
+            const bankTotal = bankRecords.reduce((sum, t) => sum + normalizeAmount(t.amount), 0);
+            const bookTotal = bookRecords.reduce((sum, t) => sum + normalizeAmount(t.amount), 0);
+            const difference = bankTotal - bookTotal;
+            const matchedCount = matches.length;
+            const discrepancyCount = discrepancies.length;
+            const reconciledPct = Math.round((matchedCount / Math.max(bankRecords.length, bookRecords.length)) * 100);
+
+            const summaryHtml = `
+                <div class="summary-row-wrapper">
+                    <div class="row-label">Transaction Summary</div>
+                    <div class="summary-row">
+                        <div class="summary-card">
+                            <div class="summary-value">${bankRecords.length}</div>
+                            <div class="summary-label">Bank Transactions</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-value">${bookRecords.length}</div>
+                            <div class="summary-label">Book Entries</div>
+                        </div>
+                        <div class="summary-card success">
+                            <div class="summary-value">${matchedCount}</div>
+                            <div class="summary-label">Matched</div>
+                        </div>
+                        <div class="summary-card warning">
+                            <div class="summary-value">${discrepancyCount}</div>
+                            <div class="summary-label">Discrepancies</div>
+                        </div>
+                        <div class="summary-card highlight">
+                            <div class="summary-value">${reconciledPct}%</div>
+                            <div class="summary-label">Reconciled</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="summary-row-wrapper">
+                    <div class="row-label">Financial Summary</div>
+                    <div class="summary-row financial">
+                        <div class="summary-card">
+                            <div class="summary-value currency">${formatCurrency(bankTotal)}</div>
+                            <div class="summary-label">Bank Balance</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-value currency">${formatCurrency(bookTotal)}</div>
+                            <div class="summary-label">Book Balance</div>
+                        </div>
+                        <div class="summary-card ${Math.abs(difference) > 0.01 ? 'warning' : 'success'}">
+                            <div class="summary-value currency">${formatCurrency(difference)}</div>
+                            <div class="summary-label">Difference</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('summary-container').innerHTML = summaryHtml;
+        }
+
+        function renderDiscrepancies(discrepancies) {
+            const listEl = document.getElementById('discrepancy-list');
+
+            if (discrepancies.length === 0) {
+                listEl.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <p>No discrepancies found! All transactions matched.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = discrepancies.map((d, idx) => {
+                const badgeClass = {
+                    'missing_bank': 'badge-missing-bank',
+                    'missing_books': 'badge-missing-books',
+                    'mismatch': 'badge-mismatch',
+                    'duplicate': 'badge-duplicate'
+                }[d.type];
+
+                const badgeText = {
+                    'missing_bank': 'Missing from Bank',
+                    'missing_books': 'Missing from Books',
+                    'mismatch': 'Amount Mismatch',
+                    'duplicate': 'Duplicate Entry'
+                }[d.type];
+
+                const amount = d.type === 'mismatch'
+                    ? `Bank: ${formatCurrency(d.bankAmount)} / Books: ${formatCurrency(d.bookAmount)}`
+                    : formatCurrency(d.amount);
+
+                return `
+                    <div class="discrepancy-item" data-idx="${idx}">
+                        <div class="discrepancy-header" onclick="toggleDiscrepancy(${idx})">
+                            <div class="discrepancy-type">
+                                <span class="discrepancy-badge ${badgeClass}">${badgeText}</span>
+                                <span class="discrepancy-desc">${d.description}</span>
+                            </div>
+                            <span class="discrepancy-amount">${amount}</span>
+                        </div>
+                        <div class="discrepancy-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Date</span>
+                                <span class="detail-value">${d.date}</span>
+                            </div>
+                            ${d.reference ? `
+                            <div class="detail-row">
+                                <span class="detail-label">Reference</span>
+                                <span class="detail-value">${d.reference}</span>
+                            </div>
+                            ` : ''}
+                            ${d.type === 'mismatch' ? `
+                            <div class="detail-row">
+                                <span class="detail-label">Difference</span>
+                                <span class="detail-value">${formatCurrency(d.difference)}</span>
+                            </div>
+                            ` : ''}
+                            ${d.type === 'duplicate' ? `
+                            <div class="detail-row">
+                                <span class="detail-label">Occurrences</span>
+                                <span class="detail-value">${d.count}</span>
+                            </div>
+                            ` : ''}
+                            <div class="suggestion-box">
+                                <div class="suggestion-label">Suggested Fix</div>
+                                <div class="suggestion-text" id="suggestion-${idx}">${getStandardSuggestion(d)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            listEl.innerHTML = html;
+        }
+
+        function renderMatches(matches) {
+            const tbody = document.getElementById('matched-tbody');
+            const summary = document.getElementById('matched-summary');
+
+            summary.textContent = `${matches.length} transactions successfully matched between bank and books.`;
+
+            const html = matches.map(m => `
+                <tr>
+                    <td>${m.bank.date}</td>
+                    <td>${m.bank.description}</td>
+                    <td>${formatCurrency(m.bank.amount)}</td>
+                    <td>${formatCurrency(m.book.amount)}</td>
+                    <td><span class="match-score">${m.score}%</span></td>
+                </tr>
+            `).join('');
+
+            tbody.innerHTML = html;
+        }
+
+        function toggleDiscrepancy(idx) {
+            const item = document.querySelector(`.discrepancy-item[data-idx="${idx}"]`);
+            const wasExpanded = item.classList.contains('expanded');
+
+            // Close all
+            document.querySelectorAll('.discrepancy-item').forEach(el => {
+                el.classList.remove('expanded');
+            });
+
+            // Toggle clicked
+            if (!wasExpanded) {
+                item.classList.add('expanded');
+
+                // Get AI suggestion if API key is present
+                const apiKey = document.getElementById('openai-key').value.trim();
+                if (apiKey && reconciliationResults) {
+                    const suggestionEl = document.getElementById(`suggestion-${idx}`);
+                    suggestionEl.textContent = 'Getting AI suggestion...';
+                    suggestionEl.classList.add('loading');
+
+                    getAISuggestion(reconciliationResults.discrepancies[idx], apiKey)
+                        .then(suggestion => {
+                            suggestionEl.textContent = suggestion;
+                            suggestionEl.classList.remove('loading');
+                        });
+                }
+            }
+        }
+
+        // ===========================================
+        // MAIN FUNCTIONS
+        // ===========================================
+
+        function runReconciliation() {
+            if (!bankData || !booksData) return;
+
+            document.getElementById('results-section').classList.add('visible');
+
+            reconciliationResults = reconcile(bankData, booksData);
+
+            renderSummary(reconciliationResults, bankData, booksData);
+            renderDiscrepancies(reconciliationResults.discrepancies);
+            renderMatches(reconciliationResults.matches);
+        }
+
+        function updateReconcileButton() {
+            const btn = document.getElementById('reconcile-btn');
+            btn.disabled = !(bankData && booksData);
+        }
+
+        function loadBankData(csvText) {
+            bankData = parseCSV(csvText);
+            document.getElementById('bank-upload').classList.add('loaded');
+            document.getElementById('bank-file-name').textContent = `${bankData.length} transactions loaded`;
+            updateReconcileButton();
+        }
+
+        function loadBooksData(csvText) {
+            booksData = parseCSV(csvText);
+            document.getElementById('books-upload').classList.add('loaded');
+            document.getElementById('books-file-name').textContent = `${booksData.length} entries loaded`;
+            updateReconcileButton();
+        }
+
+        // ===========================================
+        // EVENT HANDLERS
+        // ===========================================
+
+        // Bank upload
+        const bankUpload = document.getElementById('bank-upload');
+        const bankInput = document.getElementById('bank-input');
+
+        bankUpload.addEventListener('click', () => bankInput.click());
+        bankUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            bankUpload.classList.add('dragover');
+        });
+        bankUpload.addEventListener('dragleave', () => bankUpload.classList.remove('dragover'));
+        bankUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            bankUpload.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file?.name.endsWith('.csv')) {
+                const reader = new FileReader();
+                reader.onload = (e) => loadBankData(e.target.result);
+                reader.readAsText(file);
+            }
+        });
+        bankInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => loadBankData(e.target.result);
+                reader.readAsText(file);
+            }
+        });
+
+        // Books upload
+        const booksUpload = document.getElementById('books-upload');
+        const booksInput = document.getElementById('books-input');
+
+        booksUpload.addEventListener('click', () => booksInput.click());
+        booksUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            booksUpload.classList.add('dragover');
+        });
+        booksUpload.addEventListener('dragleave', () => booksUpload.classList.remove('dragover'));
+        booksUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            booksUpload.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file?.name.endsWith('.csv')) {
+                const reader = new FileReader();
+                reader.onload = (e) => loadBooksData(e.target.result);
+                reader.readAsText(file);
+            }
+        });
+        booksInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => loadBooksData(e.target.result);
+                reader.readAsText(file);
+            }
+        });
+
+        // Sample data buttons
+        document.getElementById('load-clean').addEventListener('click', () => {
+            loadBankData(SAMPLE_CLEAN_BANK);
+            loadBooksData(SAMPLE_CLEAN_BOOKS);
+        });
+
+        document.getElementById('load-messy').addEventListener('click', () => {
+            loadBankData(SAMPLE_MESSY_BANK);
+            loadBooksData(SAMPLE_MESSY_BOOKS);
+        });
+
+        // Reconcile button
+        document.getElementById('reconcile-btn').addEventListener('click', runReconciliation);
+    </script>
+</body>
+</html>

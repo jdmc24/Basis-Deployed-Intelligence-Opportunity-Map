@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journal Entry Generator | Basis Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Oxygen:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --basis-teal: #41666F;
+            --basis-teal-light: #5a8a95;
+            --basis-teal-dark: #254951;
+            --bg-primary: #121518;
+            --bg-secondary: #1a1d21;
+            --bg-tertiary: #22262b;
+            --text-primary: #e8eaed;
+            --text-secondary: #9aa0a6;
+            --text-muted: #6b7280;
+            --border-color: #2d3238;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --error: #ef4444;
+            --info: #60a5fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Oxygen', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .header h1 span {
+            color: var(--basis-teal-light);
+        }
+
+        .back-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--basis-teal-light);
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .intro {
+            margin-bottom: 2rem;
+        }
+
+        .intro h2 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .intro p {
+            color: var(--text-secondary);
+            max-width: 800px;
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .panel-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--basis-teal-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--basis-teal-light);
+            background: rgba(90, 138, 149, 0.05);
+        }
+
+        .upload-area.has-file {
+            border-color: var(--success);
+            border-style: solid;
+            background: rgba(74, 222, 128, 0.05);
+        }
+
+        .upload-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 1rem;
+            color: var(--text-muted);
+        }
+
+        .upload-area.has-file .upload-icon {
+            color: var(--success);
+        }
+
+        .upload-text {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-hint {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .file-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--success);
+            margin-top: 0.5rem;
+        }
+
+        /* Sample Data */
+        .sample-data {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .sample-item {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .sample-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Oxygen', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .sample-btn:hover {
+            border-color: var(--basis-teal-light);
+            color: var(--basis-teal-light);
+        }
+
+        .sample-btn strong {
+            display: block;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .preview-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        .preview-btn:hover {
+            border-color: var(--basis-teal-light);
+            color: var(--basis-teal-light);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            max-width: 900px;
+            max-height: 80vh;
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h3 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .preview-table th {
+            text-align: left;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+        }
+
+        .preview-table td {
+            padding: 0.6rem 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .preview-table tr:hover td {
+            background: rgba(90, 138, 149, 0.05);
+        }
+
+        .preview-table .amount-positive {
+            color: var(--success);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .preview-table .amount-negative {
+            color: var(--error);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .preview-table .type-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            background: var(--bg-primary);
+            color: var(--text-muted);
+        }
+
+        .sample-btn span {
+            font-size: 0.8rem;
+        }
+
+        /* API Key */
+        .api-section {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .api-input-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .api-input-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .api-input-group input {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .api-input-group input:focus {
+            outline: none;
+            border-color: var(--basis-teal-light);
+        }
+
+        .api-note {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Generate Button */
+        .generate-btn {
+            background: var(--basis-teal);
+            border: none;
+            color: white;
+            padding: 0.875rem 2rem;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .generate-btn:hover {
+            background: var(--basis-teal-light);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .summary-card .value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--basis-teal-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-card .label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .summary-card.success .value { color: var(--success); }
+        .summary-card.warning .value { color: var(--warning); }
+        .summary-card.info .value { color: var(--info); }
+
+        /* Journal Entry Cards */
+        .entry-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            background: var(--bg-secondary);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .entry-header:hover {
+            background: rgba(90, 138, 149, 0.1);
+        }
+
+        .entry-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .entry-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background: var(--bg-primary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .entry-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .entry-date {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .confidence-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .confidence-high {
+            background: rgba(74, 222, 128, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+
+        .confidence-medium {
+            background: rgba(251, 191, 36, 0.15);
+            color: var(--warning);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .confidence-low {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .entry-body {
+            padding: 1.25rem;
+            display: none;
+        }
+
+        .entry-card.expanded .entry-body {
+            display: block;
+        }
+
+        .expand-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+
+        .entry-card.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Journal Entry Table */
+        .entry-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .entry-table th {
+            text-align: left;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }
+
+        .entry-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .entry-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .entry-table .account-name {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .entry-table .debit {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--success);
+            text-align: right;
+        }
+
+        .entry-table .credit {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--info);
+            text-align: right;
+        }
+
+        .entry-table .indent {
+            padding-left: 2rem;
+        }
+
+        /* Entry Explanation */
+        .entry-explanation {
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .entry-explanation h4 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--basis-teal-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .entry-explanation p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Entry Meta */
+        .entry-meta {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+        }
+
+        .entry-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .entry-meta-item .label {
+            color: var(--text-muted);
+        }
+
+        .entry-meta-item .value {
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Totals Row */
+        .totals-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 2rem;
+            padding: 1rem 1.25rem;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .totals-row .total-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .totals-row .total-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .totals-row .total-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .totals-row .total-value.debit { color: var(--success); }
+        .totals-row .total-value.credit { color: var(--info); }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+        }
+
+        .footer a {
+            color: var(--basis-teal-light);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Loading State */
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .loading.visible {
+            display: flex;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--basis-teal-light);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>Journal Entry <span>Generator</span></h1>
+            <a href="../../index.html" class="back-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="intro">
+            <h2>Automated Journal Entry Generation</h2>
+            <p>Upload your source transactions (invoices, expenses, payments) and the AI will generate proper double-entry journal entries with explanations, account assignments, and confidence levels.</p>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="panel">
+            <div class="panel-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                    <path d="M14 2v6h6M12 18v-6M9 15l3-3 3 3"/>
+                </svg>
+                Upload Source Transactions
+            </div>
+
+            <div class="upload-area" id="upload-area">
+                <input type="file" id="file-input" accept=".csv" hidden>
+                <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <div class="upload-text">Drop your CSV file here or click to browse</div>
+                <div class="upload-hint">Supported: CSV with transaction data (date, description, amount, type)</div>
+                <div class="file-name" id="file-name"></div>
+            </div>
+
+            <div class="panel-title" style="margin-top: 1.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7c-2 0-3 1-3 3z"/>
+                    <path d="M9 12h6M12 9v6"/>
+                </svg>
+                Or Try Sample Data
+            </div>
+
+            <div class="sample-data">
+                <div class="sample-item">
+                    <button class="sample-btn" onclick="loadSample('simple')">
+                        <strong>Simple Scenario</strong>
+                        <span>15 transactions: revenue, expenses, payroll</span>
+                    </button>
+                    <button class="preview-btn" onclick="previewSample('simple')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        Preview Data
+                    </button>
+                </div>
+                <div class="sample-item">
+                    <button class="sample-btn" onclick="loadSample('complex')">
+                        <strong>Complex Scenario</strong>
+                        <span>25 transactions: accruals, deferrals, adjustments</span>
+                    </button>
+                    <button class="preview-btn" onclick="previewSample('complex')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        Preview Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Key Section -->
+        <div class="panel">
+            <div class="panel-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                    <path d="M12 6v6l4 2"/>
+                </svg>
+                AI Enhancement (Optional)
+            </div>
+
+            <div class="api-section">
+                <div class="api-input-group">
+                    <label for="api-key">OpenAI API Key</label>
+                    <input type="password" id="api-key" placeholder="sk-...">
+                    <div class="api-note">Optional: Enables AI-generated explanations. Key is never stored.</div>
+                </div>
+                <button class="generate-btn" id="generate-btn" disabled onclick="generateEntries()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                    Generate Journal Entries
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <span>Analyzing transactions and generating journal entries...</span>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="results">
+            <div class="panel">
+                <div class="panel-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Summary
+                </div>
+
+                <div class="summary-grid" id="summary-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    Generated Journal Entries
+                </div>
+
+                <div id="entries-container">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Preview Modal -->
+    <div class="modal-overlay" id="preview-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-title">Sample Data Preview</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody id="preview-table-body">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        Part of the <a href="../../index.html">Basis Deployed Intelligence</a> application for Jake McCorkle
+    </footer>
+
+    <script>
+        // ============================================
+        // SAMPLE DATA
+        // ============================================
+
+        const sampleSimple = [
+            { date: '2024-01-02', description: 'Client payment - ABC Corp Invoice #1001', amount: 5000, type: 'receipt' },
+            { date: '2024-01-03', description: 'Office supplies - Staples', amount: -245.50, type: 'expense' },
+            { date: '2024-01-05', description: 'Monthly rent payment', amount: -3500, type: 'expense' },
+            { date: '2024-01-08', description: 'Consulting revenue - XYZ Inc', amount: 8500, type: 'receipt' },
+            { date: '2024-01-10', description: 'Employee payroll - January W1', amount: -12500, type: 'payroll' },
+            { date: '2024-01-12', description: 'Software subscription - QuickBooks', amount: -75, type: 'expense' },
+            { date: '2024-01-15', description: 'Client payment - DEF Ltd Invoice #1002', amount: 3200, type: 'receipt' },
+            { date: '2024-01-17', description: 'Utility bill - Electric', amount: -425, type: 'expense' },
+            { date: '2024-01-19', description: 'Professional services - Legal fees', amount: -1500, type: 'expense' },
+            { date: '2024-01-22', description: 'Sales revenue - Product batch #45', amount: 12000, type: 'receipt' },
+            { date: '2024-01-24', description: 'Employee payroll - January W2', amount: -12500, type: 'payroll' },
+            { date: '2024-01-25', description: 'Insurance premium - Q1', amount: -2400, type: 'expense' },
+            { date: '2024-01-28', description: 'Bank service charges', amount: -35, type: 'expense' },
+            { date: '2024-01-30', description: 'Interest income - Savings account', amount: 125, type: 'receipt' },
+            { date: '2024-01-31', description: 'Client payment - GHI Corp Invoice #1003', amount: 6750, type: 'receipt' }
+        ];
+
+        const sampleComplex = [
+            { date: '2024-01-02', description: 'Client payment - ABC Corp Invoice #1001', amount: 5000, type: 'receipt' },
+            { date: '2024-01-03', description: 'Prepaid insurance - Annual policy', amount: -12000, type: 'prepaid' },
+            { date: '2024-01-05', description: 'Equipment purchase - Computer servers', amount: -25000, type: 'asset' },
+            { date: '2024-01-07', description: 'Deferred revenue - Annual contract upfront', amount: 48000, type: 'deferred' },
+            { date: '2024-01-08', description: 'Consulting revenue - XYZ Inc', amount: 8500, type: 'receipt' },
+            { date: '2024-01-10', description: 'Employee payroll - January W1', amount: -12500, type: 'payroll' },
+            { date: '2024-01-10', description: 'Payroll taxes payable', amount: -2500, type: 'liability' },
+            { date: '2024-01-12', description: 'Inventory purchase - Raw materials', amount: -18000, type: 'inventory' },
+            { date: '2024-01-15', description: 'Client payment - DEF Ltd Invoice #1002', amount: 3200, type: 'receipt' },
+            { date: '2024-01-17', description: 'Accrued expenses - Utilities estimate', amount: -850, type: 'accrual' },
+            { date: '2024-01-19', description: 'Depreciation - Monthly equipment', amount: -1250, type: 'depreciation' },
+            { date: '2024-01-20', description: 'Bad debt write-off - Old receivable', amount: -2000, type: 'writeoff' },
+            { date: '2024-01-22', description: 'Sales revenue - Product batch #45', amount: 12000, type: 'receipt' },
+            { date: '2024-01-22', description: 'Cost of goods sold - Batch #45', amount: -7200, type: 'cogs' },
+            { date: '2024-01-24', description: 'Employee payroll - January W2', amount: -12500, type: 'payroll' },
+            { date: '2024-01-25', description: 'Loan payment - Principal portion', amount: -5000, type: 'loan_principal' },
+            { date: '2024-01-25', description: 'Loan payment - Interest portion', amount: -750, type: 'loan_interest' },
+            { date: '2024-01-27', description: 'Revenue recognition - Deferred (1/12)', amount: 4000, type: 'recognition' },
+            { date: '2024-01-28', description: 'Amortization - Prepaid insurance (1/12)', amount: -1000, type: 'amortization' },
+            { date: '2024-01-29', description: 'Allowance for doubtful accounts adjustment', amount: -500, type: 'allowance' },
+            { date: '2024-01-30', description: 'Interest income - Savings account', amount: 125, type: 'receipt' },
+            { date: '2024-01-31', description: 'Accrued revenue - Unbilled services', amount: 3500, type: 'accrual_rev' },
+            { date: '2024-01-31', description: 'Client payment - GHI Corp Invoice #1003', amount: 6750, type: 'receipt' },
+            { date: '2024-01-31', description: 'Dividend declaration', amount: -10000, type: 'dividend' },
+            { date: '2024-01-31', description: 'Month-end adjusting - Wages payable', amount: -3200, type: 'accrual' }
+        ];
+
+        // ============================================
+        // JOURNAL ENTRY GENERATION RULES
+        // ============================================
+
+        const entryRules = {
+            receipt: {
+                debit: { account: 'Cash', type: 'Asset' },
+                credit: { account: 'Accounts Receivable', altAccount: 'Revenue', type: 'Asset/Revenue' },
+                explanation: 'Cash received from customer payment reduces accounts receivable or records revenue directly.',
+                confidence: 'high'
+            },
+            expense: {
+                debit: { account: 'Operating Expenses', type: 'Expense' },
+                credit: { account: 'Cash', altAccount: 'Accounts Payable', type: 'Asset/Liability' },
+                explanation: 'Operating expense recorded, reducing cash or creating a payable.',
+                confidence: 'high'
+            },
+            payroll: {
+                debit: { account: 'Salaries & Wages Expense', type: 'Expense' },
+                credit: { account: 'Cash', type: 'Asset' },
+                explanation: 'Payroll expense paid to employees reduces cash.',
+                confidence: 'high'
+            },
+            prepaid: {
+                debit: { account: 'Prepaid Expenses', type: 'Asset' },
+                credit: { account: 'Cash', type: 'Asset' },
+                explanation: 'Prepaid expense recorded as asset, to be amortized over benefit period.',
+                confidence: 'high'
+            },
+            asset: {
+                debit: { account: 'Fixed Assets - Equipment', type: 'Asset' },
+                credit: { account: 'Cash', altAccount: 'Accounts Payable', type: 'Asset/Liability' },
+                explanation: 'Capital asset purchase recorded at cost, subject to future depreciation.',
+                confidence: 'high'
+            },
+            deferred: {
+                debit: { account: 'Cash', type: 'Asset' },
+                credit: { account: 'Deferred Revenue', type: 'Liability' },
+                explanation: 'Cash received in advance creates a liability until services are performed.',
+                confidence: 'high'
+            },
+            liability: {
+                debit: { account: 'Payroll Tax Expense', type: 'Expense' },
+                credit: { account: 'Payroll Taxes Payable', type: 'Liability' },
+                explanation: 'Payroll tax expense accrued as liability until remitted to government.',
+                confidence: 'high'
+            },
+            inventory: {
+                debit: { account: 'Inventory', type: 'Asset' },
+                credit: { account: 'Cash', altAccount: 'Accounts Payable', type: 'Asset/Liability' },
+                explanation: 'Inventory purchased and recorded at cost until sold.',
+                confidence: 'high'
+            },
+            accrual: {
+                debit: { account: 'Utilities Expense', type: 'Expense' },
+                credit: { account: 'Accrued Expenses', type: 'Liability' },
+                explanation: 'Expense accrued in period incurred, even though not yet paid.',
+                confidence: 'medium'
+            },
+            depreciation: {
+                debit: { account: 'Depreciation Expense', type: 'Expense' },
+                credit: { account: 'Accumulated Depreciation', type: 'Contra-Asset' },
+                explanation: 'Systematic allocation of asset cost over useful life.',
+                confidence: 'high'
+            },
+            writeoff: {
+                debit: { account: 'Bad Debt Expense', type: 'Expense' },
+                credit: { account: 'Accounts Receivable', type: 'Asset' },
+                explanation: 'Uncollectible receivable written off against bad debt expense.',
+                confidence: 'medium'
+            },
+            cogs: {
+                debit: { account: 'Cost of Goods Sold', type: 'Expense' },
+                credit: { account: 'Inventory', type: 'Asset' },
+                explanation: 'Cost of inventory sold matched against revenue in same period.',
+                confidence: 'high'
+            },
+            loan_principal: {
+                debit: { account: 'Notes Payable', type: 'Liability' },
+                credit: { account: 'Cash', type: 'Asset' },
+                explanation: 'Principal payment reduces outstanding loan balance.',
+                confidence: 'high'
+            },
+            loan_interest: {
+                debit: { account: 'Interest Expense', type: 'Expense' },
+                credit: { account: 'Cash', type: 'Asset' },
+                explanation: 'Interest expense on outstanding debt paid in cash.',
+                confidence: 'high'
+            },
+            recognition: {
+                debit: { account: 'Deferred Revenue', type: 'Liability' },
+                credit: { account: 'Service Revenue', type: 'Revenue' },
+                explanation: 'Revenue recognized as services are performed over contract period.',
+                confidence: 'high'
+            },
+            amortization: {
+                debit: { account: 'Insurance Expense', type: 'Expense' },
+                credit: { account: 'Prepaid Insurance', type: 'Asset' },
+                explanation: 'Prepaid expense amortized as benefit is consumed over time.',
+                confidence: 'high'
+            },
+            allowance: {
+                debit: { account: 'Bad Debt Expense', type: 'Expense' },
+                credit: { account: 'Allowance for Doubtful Accounts', type: 'Contra-Asset' },
+                explanation: 'Allowance increased to reflect estimated uncollectible accounts.',
+                confidence: 'medium'
+            },
+            accrual_rev: {
+                debit: { account: 'Accounts Receivable', type: 'Asset' },
+                credit: { account: 'Service Revenue', type: 'Revenue' },
+                explanation: 'Revenue accrued for services performed but not yet billed.',
+                confidence: 'medium'
+            },
+            dividend: {
+                debit: { account: 'Retained Earnings', type: 'Equity' },
+                credit: { account: 'Dividends Payable', type: 'Liability' },
+                explanation: 'Dividend declared reduces retained earnings and creates liability.',
+                confidence: 'high'
+            }
+        };
+
+        // ============================================
+        // STATE
+        // ============================================
+
+        let transactions = [];
+        let generatedEntries = [];
+
+        // ============================================
+        // FILE UPLOAD
+        // ============================================
+
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const fileNameDisplay = document.getElementById('file-name');
+        const generateBtn = document.getElementById('generate-btn');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.csv')) {
+                handleFile(file);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
+
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                transactions = parseCSV(e.target.result);
+                uploadArea.classList.add('has-file');
+                fileNameDisplay.textContent = `${file.name} (${transactions.length} transactions)`;
+                generateBtn.disabled = false;
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
+
+            return lines.slice(1).map(line => {
+                const values = line.split(',').map(v => v.trim());
+                const obj = {};
+                headers.forEach((h, i) => {
+                    if (h === 'amount') {
+                        obj[h] = parseFloat(values[i]) || 0;
+                    } else {
+                        obj[h] = values[i];
+                    }
+                });
+                return obj;
+            }).filter(t => t.date && t.description);
+        }
+
+        // ============================================
+        // SAMPLE DATA
+        // ============================================
+
+        function loadSample(type) {
+            transactions = type === 'simple' ? [...sampleSimple] : [...sampleComplex];
+            uploadArea.classList.add('has-file');
+            fileNameDisplay.textContent = `${type === 'simple' ? 'Simple' : 'Complex'} scenario (${transactions.length} transactions)`;
+            generateBtn.disabled = false;
+        }
+
+        // ============================================
+        // PREVIEW MODAL
+        // ============================================
+
+        function previewSample(type) {
+            const data = type === 'simple' ? sampleSimple : sampleComplex;
+            const modal = document.getElementById('preview-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const tableBody = document.getElementById('preview-table-body');
+
+            modalTitle.textContent = `${type === 'simple' ? 'Simple' : 'Complex'} Scenario - ${data.length} Transactions`;
+
+            tableBody.innerHTML = data.map(t => `
+                <tr>
+                    <td>${t.date}</td>
+                    <td>${t.description}</td>
+                    <td class="${t.amount >= 0 ? 'amount-positive' : 'amount-negative'}">
+                        ${t.amount >= 0 ? '+' : ''}$${t.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}
+                    </td>
+                    <td><span class="type-badge">${t.type}</span></td>
+                </tr>
+            `).join('');
+
+            modal.classList.add('visible');
+        }
+
+        function closeModal() {
+            document.getElementById('preview-modal').classList.remove('visible');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('preview-modal').addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                closeModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // ============================================
+        // GENERATE ENTRIES
+        // ============================================
+
+        async function generateEntries() {
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+
+            loading.classList.add('visible');
+            results.classList.remove('visible');
+
+            // Simulate processing time
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            generatedEntries = transactions.map((t, index) => {
+                const type = t.type || inferType(t);
+                const rule = entryRules[type] || entryRules.expense;
+                const amount = Math.abs(t.amount);
+
+                return {
+                    id: index + 1,
+                    date: t.date,
+                    description: t.description,
+                    type: type,
+                    amount: amount,
+                    debitAccount: rule.debit.account,
+                    debitType: rule.debit.type,
+                    creditAccount: rule.credit.account,
+                    creditType: rule.credit.type,
+                    explanation: rule.explanation,
+                    confidence: rule.confidence,
+                    source: 'CSV Import'
+                };
+            });
+
+            loading.classList.remove('visible');
+            renderResults();
+            results.classList.add('visible');
+        }
+
+        function inferType(transaction) {
+            const desc = transaction.description.toLowerCase();
+            const amount = transaction.amount;
+
+            if (desc.includes('payroll') || desc.includes('salary') || desc.includes('wage')) return 'payroll';
+            if (desc.includes('depreciation')) return 'depreciation';
+            if (desc.includes('prepaid')) return 'prepaid';
+            if (desc.includes('insurance') && amount < 0 && Math.abs(amount) > 1000) return 'prepaid';
+            if (desc.includes('inventory') || desc.includes('raw material')) return 'inventory';
+            if (desc.includes('equipment') || desc.includes('computer') || desc.includes('server')) return 'asset';
+            if (desc.includes('deferred revenue') || desc.includes('upfront')) return 'deferred';
+            if (desc.includes('accrued')) return 'accrual';
+            if (desc.includes('bad debt') || desc.includes('write-off') || desc.includes('writeoff')) return 'writeoff';
+            if (desc.includes('cost of goods') || desc.includes('cogs')) return 'cogs';
+            if (desc.includes('loan') && desc.includes('principal')) return 'loan_principal';
+            if (desc.includes('loan') && desc.includes('interest')) return 'loan_interest';
+            if (desc.includes('interest expense')) return 'loan_interest';
+            if (desc.includes('dividend')) return 'dividend';
+
+            if (amount > 0) return 'receipt';
+            return 'expense';
+        }
+
+        // ============================================
+        // RENDER RESULTS
+        // ============================================
+
+        function renderResults() {
+            const summaryGrid = document.getElementById('summary-grid');
+            const entriesContainer = document.getElementById('entries-container');
+
+            // Calculate summary
+            const totalDebits = generatedEntries.reduce((sum, e) => sum + e.amount, 0);
+            const totalCredits = totalDebits; // Double-entry always balances
+            const highConfidence = generatedEntries.filter(e => e.confidence === 'high').length;
+            const mediumConfidence = generatedEntries.filter(e => e.confidence === 'medium').length;
+
+            summaryGrid.innerHTML = `
+                <div class="summary-card">
+                    <div class="value">${generatedEntries.length}</div>
+                    <div class="label">Journal Entries</div>
+                </div>
+                <div class="summary-card success">
+                    <div class="value">$${totalDebits.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                    <div class="label">Total Debits</div>
+                </div>
+                <div class="summary-card info">
+                    <div class="value">$${totalCredits.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                    <div class="label">Total Credits</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value">${highConfidence}</div>
+                    <div class="label">High Confidence</div>
+                </div>
+                <div class="summary-card warning">
+                    <div class="value">${mediumConfidence}</div>
+                    <div class="label">Review Suggested</div>
+                </div>
+            `;
+
+            entriesContainer.innerHTML = generatedEntries.map(entry => `
+                <div class="entry-card" onclick="toggleEntry(this)">
+                    <div class="entry-header">
+                        <div class="entry-header-left">
+                            <span class="entry-number">JE-${String(entry.id).padStart(3, '0')}</span>
+                            <div>
+                                <div class="entry-title">${truncate(entry.description, 50)}</div>
+                                <div class="entry-date">${formatDate(entry.date)}</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span class="confidence-badge confidence-${entry.confidence}">
+                                ${entry.confidence === 'high' ? '95%+' : entry.confidence === 'medium' ? '80-94%' : '< 80%'} confidence
+                            </span>
+                            <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="entry-body">
+                        <table class="entry-table">
+                            <thead>
+                                <tr>
+                                    <th>Account</th>
+                                    <th>Type</th>
+                                    <th style="text-align: right;">Debit</th>
+                                    <th style="text-align: right;">Credit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="account-name">${entry.debitAccount}</td>
+                                    <td>${entry.debitType}</td>
+                                    <td class="debit">$${entry.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                                    <td class="credit"></td>
+                                </tr>
+                                <tr>
+                                    <td class="account-name indent">${entry.creditAccount}</td>
+                                    <td>${entry.creditType}</td>
+                                    <td class="debit"></td>
+                                    <td class="credit">$${entry.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="entry-explanation">
+                            <h4>AI Explanation</h4>
+                            <p>${entry.explanation}</p>
+                        </div>
+
+                        <div class="entry-meta">
+                            <div class="entry-meta-item">
+                                <span class="label">Source:</span>
+                                <span class="value">${entry.source}</span>
+                            </div>
+                            <div class="entry-meta-item">
+                                <span class="label">Entry Type:</span>
+                                <span class="value">${formatEntryType(entry.type)}</span>
+                            </div>
+                            <div class="entry-meta-item">
+                                <span class="label">Date:</span>
+                                <span class="value">${entry.date}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="totals-row">
+                        <div class="total-item">
+                            <span class="total-label">Debit:</span>
+                            <span class="total-value debit">$${entry.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                        </div>
+                        <div class="total-item">
+                            <span class="total-label">Credit:</span>
+                            <span class="total-value credit">$${entry.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleEntry(card) {
+            card.classList.toggle('expanded');
+        }
+
+        function truncate(str, length) {
+            return str.length > length ? str.substring(0, length) + '...' : str;
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function formatEntryType(type) {
+            const typeMap = {
+                receipt: 'Cash Receipt',
+                expense: 'Operating Expense',
+                payroll: 'Payroll',
+                prepaid: 'Prepaid Expense',
+                asset: 'Asset Purchase',
+                deferred: 'Deferred Revenue',
+                liability: 'Liability Accrual',
+                inventory: 'Inventory Purchase',
+                accrual: 'Expense Accrual',
+                depreciation: 'Depreciation',
+                writeoff: 'Write-off',
+                cogs: 'Cost of Goods Sold',
+                loan_principal: 'Loan Principal',
+                loan_interest: 'Interest Expense',
+                recognition: 'Revenue Recognition',
+                amortization: 'Amortization',
+                allowance: 'Allowance Adjustment',
+                accrual_rev: 'Revenue Accrual',
+                dividend: 'Dividend Declaration'
+            };
+            return typeMap[type] || type;
+        }
+    </script>
+</body>
+</html>

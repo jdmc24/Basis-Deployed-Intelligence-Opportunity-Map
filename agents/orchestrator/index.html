@@ -1,0 +1,1890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Agent Orchestrator | Basis Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Oxygen:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --basis-teal: #41666F;
+            --basis-teal-light: #5a8a95;
+            --basis-teal-dark: #254951;
+            --bg-primary: #121518;
+            --bg-secondary: #1a1d21;
+            --bg-tertiary: #22262b;
+            --text-primary: #e8eaed;
+            --text-secondary: #9aa0a6;
+            --text-muted: #6b7280;
+            --border-color: #2d3238;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --error: #ef4444;
+            --info: #60a5fa;
+            --purple: #a78bfa;
+            --pink: #f472b6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Oxygen', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .header h1 span {
+            color: var(--basis-teal-light);
+        }
+
+        .header-badge {
+            background: var(--basis-teal-dark);
+            border: 1px solid var(--basis-teal);
+            color: var(--basis-teal-light);
+            padding: 0.35rem 0.75rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .back-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--basis-teal-light);
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .intro {
+            margin-bottom: 2rem;
+        }
+
+        .intro h2 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .intro p {
+            color: var(--text-secondary);
+            max-width: 800px;
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .panel-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--basis-teal-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Architecture Diagram - 3-Tier Hierarchy */
+        .architecture-3tier {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .arch-title {
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1.5rem;
+        }
+
+        .arch-layers {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .arch-layer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .layer-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .arch-node {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .arch-node.coordination {
+            border-color: var(--purple);
+            background: rgba(167, 139, 250, 0.1);
+        }
+
+        .arch-node.coordination.active {
+            border-color: var(--purple);
+            color: var(--purple);
+            box-shadow: 0 0 20px rgba(167, 139, 250, 0.3);
+        }
+
+        .arch-node.supervisor {
+            border-color: var(--warning);
+            background: rgba(251, 191, 36, 0.05);
+        }
+
+        .arch-node.supervisor.active {
+            border-color: var(--warning);
+            color: var(--warning);
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+        }
+
+        .arch-node.subagent {
+            border-color: var(--basis-teal);
+            background: rgba(90, 138, 149, 0.05);
+        }
+
+        .arch-node.subagent.active {
+            border-color: var(--basis-teal-light);
+            color: var(--basis-teal-light);
+            box-shadow: 0 0 15px rgba(90, 138, 149, 0.3);
+        }
+
+        .arch-node.completed {
+            border-color: var(--success) !important;
+            color: var(--success) !important;
+        }
+
+        .supervisor-row {
+            display: flex;
+            gap: 3rem;
+            justify-content: center;
+        }
+
+        .subagent-row {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+        }
+
+        .subagent-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .subagent-group-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .subagent-nodes {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .arch-connector {
+            width: 2px;
+            height: 20px;
+            background: var(--border-color);
+            margin: 0 auto;
+        }
+
+        .arch-connector.active {
+            background: var(--basis-teal-light);
+        }
+
+        .arch-connector-branch {
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+
+        .arch-connector-branch::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 25%;
+            right: 25%;
+            height: 2px;
+            background: var(--border-color);
+        }
+
+        .arch-connector-branch .branch-line {
+            width: 2px;
+            height: 20px;
+            background: var(--border-color);
+            margin: 0 4rem;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--basis-teal-light);
+            background: rgba(90, 138, 149, 0.05);
+        }
+
+        .upload-area.has-file {
+            border-color: var(--success);
+            border-style: solid;
+            background: rgba(74, 222, 128, 0.05);
+        }
+
+        .upload-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 1rem;
+            color: var(--text-muted);
+        }
+
+        .upload-area.has-file .upload-icon {
+            color: var(--success);
+        }
+
+        .upload-text {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-hint {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .file-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--success);
+            margin-top: 0.5rem;
+        }
+
+        /* Sample Data */
+        .sample-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.75rem 1.25rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Oxygen', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .sample-btn:hover {
+            border-color: var(--basis-teal-light);
+            color: var(--basis-teal-light);
+        }
+
+        .sample-btn strong {
+            display: block;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        /* Run Button */
+        .run-btn {
+            background: linear-gradient(135deg, var(--basis-teal) 0%, var(--basis-teal-dark) 100%);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .run-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(90, 138, 149, 0.3);
+        }
+
+        .run-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Workflow Progress */
+        .workflow-section {
+            display: none;
+        }
+
+        .workflow-section.visible {
+            display: block;
+        }
+
+        /* Agent Activity Log */
+        .agent-log {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 1.5rem;
+        }
+
+        .log-entry {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .log-agent {
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        .log-agent.coordination {
+            background: rgba(167, 139, 250, 0.15);
+            color: var(--purple);
+        }
+
+        .log-agent.supervisor {
+            background: rgba(251, 191, 36, 0.15);
+            color: var(--warning);
+        }
+
+        .log-agent.subagent {
+            background: rgba(90, 138, 149, 0.15);
+            color: var(--basis-teal-light);
+        }
+
+        .log-message {
+            color: var(--text-secondary);
+            flex: 1;
+        }
+
+        .log-entry.highlight .log-message {
+            color: var(--text-primary);
+        }
+
+        /* Workflow Steps */
+        .workflow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .workflow-step {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s;
+        }
+
+        .workflow-step.active {
+            border-color: var(--basis-teal);
+            background: rgba(90, 138, 149, 0.1);
+        }
+
+        .workflow-step.completed {
+            border-color: var(--success);
+        }
+
+        .workflow-step.supervisor-step {
+            margin-left: 2rem;
+            border-left: 3px solid var(--warning);
+        }
+
+        .workflow-step.subagent-step {
+            margin-left: 4rem;
+            border-left: 3px solid var(--basis-teal);
+        }
+
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1rem;
+        }
+
+        .step-icon.coordination {
+            background: rgba(167, 139, 250, 0.15);
+            color: var(--purple);
+            border: 2px solid var(--purple);
+        }
+
+        .step-icon.supervisor {
+            background: rgba(251, 191, 36, 0.1);
+            color: var(--warning);
+            border: 2px solid var(--warning);
+        }
+
+        .step-icon.subagent {
+            background: rgba(90, 138, 149, 0.1);
+            color: var(--basis-teal-light);
+            border: 2px solid var(--basis-teal);
+        }
+
+        .workflow-step.completed .step-icon {
+            background: var(--success);
+            border-color: var(--success);
+            color: var(--bg-primary);
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .step-description {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .step-result {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--success);
+            margin-top: 0.5rem;
+        }
+
+        .step-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--basis-teal-light);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .summary-card .value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--basis-teal-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-card .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .summary-card.success .value { color: var(--success); }
+        .summary-card.warning .value { color: var(--warning); }
+        .summary-card.error .value { color: var(--error); }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .tab {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            padding: 0.75rem 1.25rem;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--text-secondary);
+        }
+
+        .tab.active {
+            background: var(--bg-tertiary);
+            border-color: var(--border-color);
+            border-bottom-color: var(--bg-tertiary);
+            color: var(--basis-teal-light);
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 0 8px 8px 8px;
+            padding: 1.5rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Data Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table td {
+            padding: 0.6rem 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .data-table tr:hover td {
+            background: rgba(90, 138, 149, 0.05);
+        }
+
+        .category-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            background: var(--bg-primary);
+        }
+
+        .category-badge.high { color: var(--success); border: 1px solid var(--success); }
+        .category-badge.medium { color: var(--warning); border: 1px solid var(--warning); }
+        .category-badge.low { color: var(--error); border: 1px solid var(--error); }
+
+        .amount-positive { color: var(--success); font-family: 'JetBrains Mono', monospace; }
+        .amount-negative { color: var(--error); font-family: 'JetBrains Mono', monospace; }
+
+        .debit { color: var(--success); font-family: 'JetBrains Mono', monospace; }
+        .credit { color: var(--info); font-family: 'JetBrains Mono', monospace; }
+
+        /* Discrepancy List */
+        .discrepancy-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .discrepancy-item.missing-books {
+            border-left: 3px solid var(--warning);
+        }
+
+        .discrepancy-item.missing-bank {
+            border-left: 3px solid var(--info);
+        }
+
+        .discrepancy-item.duplicate {
+            border-left: 3px solid var(--error);
+        }
+
+        .discrepancy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .discrepancy-type {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+        }
+
+        .discrepancy-type.missing-books { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+        .discrepancy-type.missing-bank { background: rgba(96, 165, 250, 0.15); color: var(--info); }
+        .discrepancy-type.duplicate { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+
+        .discrepancy-details {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+        }
+
+        .footer a {
+            color: var(--basis-teal-light);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Sample Buttons Row */
+        .sample-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sample-row .sample-btn {
+            flex: 1;
+        }
+
+        .preview-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .preview-btn:hover {
+            border-color: var(--basis-teal-light);
+            color: var(--basis-teal-light);
+        }
+
+        /* Action Buttons */
+        .discrepancy-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .action-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.4rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .action-btn:hover {
+            border-color: var(--basis-teal-light);
+            color: var(--basis-teal-light);
+        }
+
+        .action-btn.delete:hover {
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .action-btn.approve:hover {
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .discrepancy-item.resolved {
+            opacity: 0.5;
+            border-color: var(--success) !important;
+        }
+
+        .discrepancy-item.resolved .discrepancy-type {
+            background: rgba(74, 222, 128, 0.15);
+            color: var(--success);
+        }
+
+        .resolved-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--success);
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <h1>Multi-Agent <span>Orchestrator</span></h1>
+                <span class="header-badge">3-Tier Architecture</span>
+            </div>
+            <a href="../../index.html" class="back-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="intro">
+            <h2>End-to-End Bookkeeping Automation</h2>
+            <p>Watch the Coordination Agent orchestrate specialized Supervising Agents, which in turn delegate to Sub-Agents - mirroring Basis's production multi-agent architecture.</p>
+        </div>
+
+        <!-- 3-Tier Architecture Diagram -->
+        <div class="architecture-3tier">
+            <div class="arch-title">Multi-Agent Hierarchy (Based on Basis Architecture)</div>
+
+            <div class="arch-layers">
+                <!-- Layer 1: Coordination Agent -->
+                <div class="arch-layer">
+                    <div class="layer-label">Layer 1: Coordination</div>
+                    <div class="arch-node coordination" id="arch-coordination">Coordination Agent</div>
+                </div>
+
+                <div class="arch-connector" id="conn-1"></div>
+
+                <!-- Layer 2: Supervising Agents -->
+                <div class="arch-layer">
+                    <div class="layer-label">Layer 2: Supervising Agents</div>
+                    <div class="supervisor-row">
+                        <div class="arch-node supervisor" id="arch-data-supervisor">Data Entry Supervisor</div>
+                        <div class="arch-node supervisor" id="arch-verify-supervisor">Verification Supervisor</div>
+                    </div>
+                </div>
+
+                <div class="arch-connector" id="conn-2"></div>
+
+                <!-- Layer 3: Sub-Agents -->
+                <div class="arch-layer">
+                    <div class="layer-label">Layer 3: Sub-Agents</div>
+                    <div class="subagent-row">
+                        <div class="subagent-group">
+                            <div class="subagent-nodes">
+                                <div class="arch-node subagent" id="arch-classifier">Transaction Classifier</div>
+                                <div class="arch-node subagent" id="arch-journal">Journal Entry</div>
+                            </div>
+                            <div class="subagent-group-label">Managed by Data Entry Supervisor</div>
+                        </div>
+                        <div class="subagent-group">
+                            <div class="subagent-nodes">
+                                <div class="arch-node subagent" id="arch-reconciler">Bank Reconciliation</div>
+                            </div>
+                            <div class="subagent-group-label">Managed by Verification Supervisor</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="panel" id="upload-panel">
+            <div class="panel-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                    <path d="M14 2v6h6M12 18v-6M9 15l3-3 3 3"/>
+                </svg>
+                Upload Bank Statement
+            </div>
+
+            <div class="upload-area" id="upload-area">
+                <input type="file" id="file-input" accept=".csv" hidden>
+                <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                </svg>
+                <div class="upload-text">Drop your bank statement CSV or click to browse</div>
+                <div class="upload-hint">Format: date, description, amount</div>
+                <div class="file-name" id="file-name"></div>
+            </div>
+
+            <div class="sample-row">
+                <button class="sample-btn" onclick="loadSampleData()">
+                    <strong>Load Sample Data</strong>
+                    <span>35 transactions from a consulting firm</span>
+                </button>
+                <button class="preview-btn" onclick="previewSampleData()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    Preview
+                </button>
+            </div>
+
+            <button class="run-btn" id="run-btn" disabled onclick="runWorkflow()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                Run Multi-Agent Workflow
+            </button>
+        </div>
+
+        <!-- Workflow Progress -->
+        <div class="workflow-section" id="workflow-section">
+            <div class="panel">
+                <div class="panel-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+                    </svg>
+                    Agent Activity Log
+                </div>
+
+                <div class="agent-log" id="agent-log"></div>
+
+                <div class="workflow-steps" id="workflow-steps"></div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="results-section">
+            <div class="panel">
+                <div class="panel-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                        <path d="M22 4L12 14.01l-3-3"/>
+                    </svg>
+                    Workflow Complete
+                </div>
+
+                <div class="summary-grid" id="summary-grid"></div>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('classified')">Classified Transactions</button>
+                    <button class="tab" onclick="showTab('journal')">Journal Entries</button>
+                    <button class="tab" onclick="showTab('reconciliation')">Reconciliation</button>
+                </div>
+
+                <div class="tab-content active" id="tab-classified"></div>
+                <div class="tab-content" id="tab-journal"></div>
+                <div class="tab-content" id="tab-reconciliation"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        Part of the <a href="../../index.html">Basis Deployed Intelligence</a> application for Jake McCorkle
+    </footer>
+
+    <!-- Preview Modal -->
+    <div class="modal-overlay" id="preview-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">Sample Bank Statement Preview</span>
+                <button class="modal-close" onclick="closePreviewModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="preview-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // SAMPLE DATA - Consulting Firm January Bank Statement
+        // ============================================
+        const sampleBankStatement = [
+            { date: '2024-01-02', description: 'STRIPE TRANSFER - INV1001', amount: 8500.00 },
+            { date: '2024-01-02', description: 'STRIPE TRANSFER - INV1002', amount: 4250.00 },
+            { date: '2024-01-03', description: 'GUSTO PAYROLL', amount: -12500.00 },
+            { date: '2024-01-03', description: 'GUSTO PAYROLL TAXES', amount: -2450.00 },
+            { date: '2024-01-04', description: 'AMZN MKTP US*2K7YH1', amount: -127.43 },
+            { date: '2024-01-05', description: 'COMCAST BUSINESS', amount: -189.99 },
+            { date: '2024-01-08', description: 'CHECK #1042 - RENT', amount: -3500.00 },
+            { date: '2024-01-08', description: 'STRIPE TRANSFER - INV1003', amount: 6200.00 },
+            { date: '2024-01-09', description: 'ADOBE CREATIVE CLOUD', amount: -54.99 },
+            { date: '2024-01-10', description: 'SLACK TECHNOLOGIES', amount: -32.50 },
+            { date: '2024-01-11', description: 'CLIENT WIRE - ACME CORP', amount: 15000.00 },
+            { date: '2024-01-12', description: 'STAPLES OFFICE SUPPLY', amount: -234.67 },
+            { date: '2024-01-15', description: 'STRIPE TRANSFER - INV1004', amount: 3800.00 },
+            { date: '2024-01-16', description: 'GUSTO PAYROLL', amount: -12500.00 },
+            { date: '2024-01-16', description: 'GUSTO PAYROLL TAXES', amount: -2450.00 },
+            { date: '2024-01-17', description: 'DELTA AIR LINES', amount: -487.00 },
+            { date: '2024-01-17', description: 'MARRIOTT HOTELS', amount: -312.45 },
+            { date: '2024-01-18', description: 'UBER TRIP', amount: -34.50 },
+            { date: '2024-01-19', description: 'WHOLE FOODS MARKET', amount: -67.82 },
+            { date: '2024-01-22', description: 'STRIPE TRANSFER - INV1005', amount: 5500.00 },
+            { date: '2024-01-23', description: 'GOOGLE WORKSPACE', amount: -144.00 },
+            { date: '2024-01-24', description: 'CHASE CREDIT CARD PMT', amount: -2500.00 },
+            { date: '2024-01-25', description: 'STATE FARM INSURANCE', amount: -425.00 },
+            { date: '2024-01-26', description: 'CLIENT CHECK DEP - XYZ LLC', amount: 7500.00 },
+            { date: '2024-01-29', description: 'GUSTO PAYROLL', amount: -12500.00 },
+            { date: '2024-01-29', description: 'GUSTO PAYROLL TAXES', amount: -2450.00 },
+            { date: '2024-01-30', description: 'INTEREST EARNED', amount: 45.23 },
+            { date: '2024-01-30', description: 'BANK SERVICE CHARGE', amount: -35.00 },
+            { date: '2024-01-31', description: 'STRIPE TRANSFER - INV1006', amount: 4100.00 },
+            { date: '2024-01-31', description: 'QUICKBOOKS SUBSCRIPTION', amount: -85.00 },
+            { date: '2024-01-31', description: 'AWS SERVICES', amount: -256.78 },
+            { date: '2024-01-31', description: 'ZOOM VIDEO COMMUNICATIONS', amount: -49.99 },
+            { date: '2024-01-31', description: 'LINKEDIN PREMIUM', amount: -59.99 },
+            { date: '2024-01-31', description: 'FEDEX SHIPPING', amount: -42.15 },
+            { date: '2024-01-31', description: 'STRIPE TRANSFER - INV1002', amount: 4250.00 }
+        ];
+
+        // ============================================
+        // CLASSIFICATION RULES
+        // ============================================
+        const classificationRules = [
+            { pattern: /stripe|wire|check dep|client/i, category: 'Revenue', confidence: 'high' },
+            { pattern: /payroll(?! tax)/i, category: 'Payroll', confidence: 'high' },
+            { pattern: /payroll tax/i, category: 'Payroll Taxes', confidence: 'high' },
+            { pattern: /rent/i, category: 'Rent', confidence: 'high' },
+            { pattern: /insurance/i, category: 'Insurance', confidence: 'high' },
+            { pattern: /interest earned/i, category: 'Interest Income', confidence: 'high' },
+            { pattern: /bank.*charge|service charge/i, category: 'Bank Fees', confidence: 'high' },
+            { pattern: /credit card pmt/i, category: 'Credit Card Payment', confidence: 'medium' },
+            { pattern: /delta|united|american|airline/i, category: 'Travel', confidence: 'high' },
+            { pattern: /marriott|hilton|hotel/i, category: 'Travel', confidence: 'high' },
+            { pattern: /uber|lyft/i, category: 'Travel', confidence: 'high' },
+            { pattern: /adobe|slack|google|quickbooks|zoom|aws|linkedin/i, category: 'Software & Subscriptions', confidence: 'high' },
+            { pattern: /comcast|verizon|at&t/i, category: 'Utilities', confidence: 'high' },
+            { pattern: /staples|office/i, category: 'Office Supplies', confidence: 'high' },
+            { pattern: /amzn|amazon/i, category: 'Office Supplies', confidence: 'medium' },
+            { pattern: /whole foods|restaurant|meal/i, category: 'Meals & Entertainment', confidence: 'medium' },
+            { pattern: /fedex|ups|usps/i, category: 'Shipping', confidence: 'high' }
+        ];
+
+        // ============================================
+        // JOURNAL ENTRY RULES
+        // ============================================
+        const journalEntryRules = {
+            'Revenue': { debit: 'Cash', credit: 'Service Revenue', type: 'Revenue' },
+            'Payroll': { debit: 'Salaries & Wages Expense', credit: 'Cash', type: 'Expense' },
+            'Payroll Taxes': { debit: 'Payroll Tax Expense', credit: 'Cash', type: 'Expense' },
+            'Rent': { debit: 'Rent Expense', credit: 'Cash', type: 'Expense' },
+            'Insurance': { debit: 'Insurance Expense', credit: 'Cash', type: 'Expense' },
+            'Interest Income': { debit: 'Cash', credit: 'Interest Income', type: 'Revenue' },
+            'Bank Fees': { debit: 'Bank Fees Expense', credit: 'Cash', type: 'Expense' },
+            'Credit Card Payment': { debit: 'Credit Card Payable', credit: 'Cash', type: 'Liability' },
+            'Travel': { debit: 'Travel Expense', credit: 'Cash', type: 'Expense' },
+            'Software & Subscriptions': { debit: 'Software Expense', credit: 'Cash', type: 'Expense' },
+            'Utilities': { debit: 'Utilities Expense', credit: 'Cash', type: 'Expense' },
+            'Office Supplies': { debit: 'Office Supplies Expense', credit: 'Cash', type: 'Expense' },
+            'Meals & Entertainment': { debit: 'Meals & Entertainment Expense', credit: 'Cash', type: 'Expense' },
+            'Shipping': { debit: 'Shipping Expense', credit: 'Cash', type: 'Expense' },
+            'Uncategorized': { debit: 'Miscellaneous Expense', credit: 'Cash', type: 'Expense' }
+        };
+
+        // ============================================
+        // STATE
+        // ============================================
+        let bankTransactions = [];
+        let classifiedTransactions = [];
+        let journalEntries = [];
+        let reconciliationResults = {};
+        let logStartTime = null;
+
+        // ============================================
+        // FILE UPLOAD
+        // ============================================
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const fileNameDisplay = document.getElementById('file-name');
+        const runBtn = document.getElementById('run-btn');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.csv')) {
+                handleFile(file);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
+
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                bankTransactions = parseCSV(e.target.result);
+                uploadArea.classList.add('has-file');
+                fileNameDisplay.textContent = `${file.name} (${bankTransactions.length} transactions)`;
+                runBtn.disabled = false;
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
+
+            return lines.slice(1).map(line => {
+                const values = line.split(',').map(v => v.trim());
+                const obj = {};
+                headers.forEach((h, i) => {
+                    if (h === 'amount') {
+                        obj[h] = parseFloat(values[i].replace(/[$,]/g, '')) || 0;
+                    } else {
+                        obj[h] = values[i];
+                    }
+                });
+                return obj;
+            }).filter(t => t.date && t.description);
+        }
+
+        function loadSampleData() {
+            bankTransactions = [...sampleBankStatement];
+            uploadArea.classList.add('has-file');
+            fileNameDisplay.textContent = `Sample data (${bankTransactions.length} transactions)`;
+            runBtn.disabled = false;
+        }
+
+        // ============================================
+        // PREVIEW MODAL
+        // ============================================
+        function previewSampleData() {
+            const modal = document.getElementById('preview-modal');
+            const content = document.getElementById('preview-content');
+
+            const totalIn = sampleBankStatement.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+            const totalOut = Math.abs(sampleBankStatement.filter(t => t.amount < 0).reduce((s, t) => s + t.amount, 0));
+
+            content.innerHTML = `
+                <div style="margin-bottom: 1rem; display: flex; gap: 2rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
+                    <div><span style="color: var(--text-muted);">Transactions:</span> <strong>${sampleBankStatement.length}</strong></div>
+                    <div><span style="color: var(--text-muted);">Deposits:</span> <span style="color: var(--success);">+$${totalIn.toLocaleString('en-US', {minimumFractionDigits: 2})}</span></div>
+                    <div><span style="color: var(--text-muted);">Withdrawals:</span> <span style="color: var(--error);">-$${totalOut.toLocaleString('en-US', {minimumFractionDigits: 2})}</span></div>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sampleBankStatement.map(t => `
+                            <tr>
+                                <td>${t.date}</td>
+                                <td>${t.description}</td>
+                                <td class="${t.amount >= 0 ? 'amount-positive' : 'amount-negative'}">
+                                    ${t.amount >= 0 ? '+' : ''}$${t.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            modal.classList.add('visible');
+        }
+
+        function closePreviewModal() {
+            document.getElementById('preview-modal').classList.remove('visible');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('preview-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'preview-modal') {
+                closePreviewModal();
+            }
+        });
+
+        // ============================================
+        // AGENT LOGGING
+        // ============================================
+        function getElapsedTime() {
+            if (!logStartTime) return '0.0s';
+            const elapsed = (Date.now() - logStartTime) / 1000;
+            return elapsed.toFixed(1) + 's';
+        }
+
+        function addLogEntry(agentType, message, highlight = false) {
+            const logContainer = document.getElementById('agent-log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry' + (highlight ? ' highlight' : '');
+            entry.innerHTML = `
+                <span class="log-time">${getElapsedTime()}</span>
+                <span class="log-agent ${agentType}">${agentType}</span>
+                <span class="log-message">${message}</span>
+            `;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // ============================================
+        // ARCHITECTURE DIAGRAM UPDATES
+        // ============================================
+        function resetArchitecture() {
+            const nodes = document.querySelectorAll('.arch-node');
+            nodes.forEach(n => n.classList.remove('active', 'completed'));
+        }
+
+        function activateNode(nodeId) {
+            document.getElementById(nodeId).classList.add('active');
+        }
+
+        function completeNode(nodeId) {
+            const node = document.getElementById(nodeId);
+            node.classList.remove('active');
+            node.classList.add('completed');
+        }
+
+        // ============================================
+        // WORKFLOW STEP RENDERING
+        // ============================================
+        function initWorkflowSteps() {
+            const container = document.getElementById('workflow-steps');
+            container.innerHTML = `
+                <!-- Coordination Agent -->
+                <div class="workflow-step" id="step-coord">
+                    <div class="step-icon coordination">C</div>
+                    <div class="step-content">
+                        <div class="step-title">Coordination Agent</div>
+                        <div class="step-description">Analyzing task complexity and spawning supervisors</div>
+                        <div class="step-result" id="step-coord-result"></div>
+                    </div>
+                    <div class="step-spinner" id="step-coord-spinner" style="display: none;"></div>
+                </div>
+
+                <!-- Data Entry Supervisor -->
+                <div class="workflow-step supervisor-step" id="step-data-sup">
+                    <div class="step-icon supervisor">S1</div>
+                    <div class="step-content">
+                        <div class="step-title">Data Entry Supervisor</div>
+                        <div class="step-description">Managing classification and journal entry generation</div>
+                        <div class="step-result" id="step-data-sup-result"></div>
+                    </div>
+                    <div class="step-spinner" id="step-data-sup-spinner" style="display: none;"></div>
+                </div>
+
+                <!-- Transaction Classifier Sub-Agent -->
+                <div class="workflow-step subagent-step" id="step-classify">
+                    <div class="step-icon subagent">A1</div>
+                    <div class="step-content">
+                        <div class="step-title">Transaction Classifier</div>
+                        <div class="step-description">Analyzing descriptions and categorizing transactions</div>
+                        <div class="step-result" id="step-classify-result"></div>
+                    </div>
+                    <div class="step-spinner" id="step-classify-spinner" style="display: none;"></div>
+                </div>
+
+                <!-- Journal Entry Sub-Agent -->
+                <div class="workflow-step subagent-step" id="step-journal">
+                    <div class="step-icon subagent">A2</div>
+                    <div class="step-content">
+                        <div class="step-title">Journal Entry Generator</div>
+                        <div class="step-description">Creating double-entry journal entries</div>
+                        <div class="step-result" id="step-journal-result"></div>
+                    </div>
+                    <div class="step-spinner" id="step-journal-spinner" style="display: none;"></div>
+                </div>
+
+                <!-- Verification Supervisor -->
+                <div class="workflow-step supervisor-step" id="step-verify-sup">
+                    <div class="step-icon supervisor">S2</div>
+                    <div class="step-content">
+                        <div class="step-title">Verification Supervisor</div>
+                        <div class="step-description">Managing reconciliation and validation</div>
+                        <div class="step-result" id="step-verify-sup-result"></div>
+                    </div>
+                    <div class="step-spinner" id="step-verify-sup-spinner" style="display: none;"></div>
+                </div>
+
+                <!-- Bank Reconciliation Sub-Agent -->
+                <div class="workflow-step subagent-step" id="step-reconcile">
+                    <div class="step-icon subagent">A3</div>
+                    <div class="step-content">
+                        <div class="step-title">Bank Reconciliation</div>
+                        <div class="step-description">Matching transactions and finding discrepancies</div>
+                        <div class="step-result" id="step-reconcile-result"></div>
+                    </div>
+                    <div class="step-spinner" id="step-reconcile-spinner" style="display: none;"></div>
+                </div>
+            `;
+        }
+
+        function setStepActive(stepId) {
+            document.getElementById(stepId).classList.add('active');
+            document.getElementById(`${stepId}-spinner`).style.display = 'block';
+        }
+
+        function setStepComplete(stepId, resultText) {
+            const step = document.getElementById(stepId);
+            step.classList.remove('active');
+            step.classList.add('completed');
+            document.getElementById(`${stepId}-spinner`).style.display = 'none';
+            document.getElementById(`${stepId}-result`).textContent = resultText;
+        }
+
+        // ============================================
+        // WORKFLOW EXECUTION
+        // ============================================
+        async function runWorkflow() {
+            // Initialize
+            logStartTime = Date.now();
+            document.getElementById('agent-log').innerHTML = '';
+            document.getElementById('workflow-section').classList.add('visible');
+            document.getElementById('results-section').classList.remove('visible');
+            resetArchitecture();
+            initWorkflowSteps();
+
+            // === COORDINATION AGENT ===
+            activateNode('arch-coordination');
+            setStepActive('step-coord');
+            addLogEntry('coordination', 'Received task: Process bank statement with ' + bankTransactions.length + ' transactions', true);
+            await sleep(400);
+            addLogEntry('coordination', 'Analyzing task complexity...');
+            await sleep(500);
+            addLogEntry('coordination', 'Task requires: Classification → Journal Entries → Reconciliation');
+            await sleep(400);
+            addLogEntry('coordination', 'Spawning Data Entry Supervisor for classification and journaling');
+            await sleep(300);
+            addLogEntry('coordination', 'Spawning Verification Supervisor for reconciliation');
+            await sleep(400);
+            completeNode('arch-coordination');
+            setStepComplete('step-coord', '✓ Spawned 2 supervising agents');
+
+            // === DATA ENTRY SUPERVISOR ===
+            activateNode('arch-data-supervisor');
+            setStepActive('step-data-sup');
+            addLogEntry('supervisor', '[Data Entry] Received task delegation from Coordination Agent', true);
+            await sleep(400);
+            addLogEntry('supervisor', '[Data Entry] Breaking down task: First classify, then generate entries');
+            await sleep(300);
+            addLogEntry('supervisor', '[Data Entry] Delegating to Transaction Classifier sub-agent');
+            await sleep(300);
+
+            // === TRANSACTION CLASSIFIER SUB-AGENT ===
+            activateNode('arch-classifier');
+            setStepActive('step-classify');
+            addLogEntry('subagent', '[Classifier] Received ' + bankTransactions.length + ' transactions for classification');
+            await sleep(600);
+
+            // Run classification
+            classifiedTransactions = bankTransactions.map((txn, idx) => {
+                let category = 'Uncategorized';
+                let confidence = 'low';
+
+                for (const rule of classificationRules) {
+                    if (rule.pattern.test(txn.description)) {
+                        category = rule.category;
+                        confidence = rule.confidence;
+                        break;
+                    }
+                }
+
+                return { ...txn, id: idx + 1, category, confidence };
+            });
+
+            const highConf = classifiedTransactions.filter(t => t.confidence === 'high').length;
+            const medConf = classifiedTransactions.filter(t => t.confidence === 'medium').length;
+
+            addLogEntry('subagent', '[Classifier] Classified ' + classifiedTransactions.length + ' transactions');
+            await sleep(300);
+            addLogEntry('subagent', '[Classifier] ' + highConf + ' high confidence, ' + medConf + ' medium confidence');
+            await sleep(200);
+            addLogEntry('subagent', '[Classifier] Returning results to Data Entry Supervisor');
+            completeNode('arch-classifier');
+            setStepComplete('step-classify', `✓ ${classifiedTransactions.length} classified (${highConf} high, ${medConf} medium)`);
+
+            // Back to Data Entry Supervisor
+            await sleep(300);
+            addLogEntry('supervisor', '[Data Entry] Received classification results, delegating to Journal Entry sub-agent');
+            await sleep(300);
+
+            // === JOURNAL ENTRY SUB-AGENT ===
+            activateNode('arch-journal');
+            setStepActive('step-journal');
+            addLogEntry('subagent', '[Journal Entry] Received classified transactions for entry generation');
+            await sleep(500);
+
+            // Generate journal entries
+            journalEntries = classifiedTransactions.map((txn, idx) => {
+                const rule = journalEntryRules[txn.category] || journalEntryRules['Uncategorized'];
+                const amount = Math.abs(txn.amount);
+
+                return {
+                    id: idx + 1,
+                    date: txn.date,
+                    description: txn.description,
+                    debitAccount: rule.debit,
+                    creditAccount: rule.credit,
+                    amount: amount,
+                    category: txn.category,
+                    originalAmount: txn.amount
+                };
+            });
+
+            const totalDebits = journalEntries.reduce((sum, je) => sum + je.amount, 0);
+            addLogEntry('subagent', '[Journal Entry] Generated ' + journalEntries.length + ' double-entry journal entries');
+            await sleep(300);
+            addLogEntry('subagent', '[Journal Entry] Total debits/credits: $' + totalDebits.toLocaleString('en-US', {minimumFractionDigits: 2}));
+            await sleep(200);
+            addLogEntry('subagent', '[Journal Entry] Returning results to Data Entry Supervisor');
+            completeNode('arch-journal');
+            setStepComplete('step-journal', `✓ ${journalEntries.length} entries ($${totalDebits.toLocaleString('en-US', {minimumFractionDigits: 2})} total)`);
+
+            // Data Entry Supervisor completes
+            await sleep(300);
+            completeNode('arch-data-supervisor');
+            addLogEntry('supervisor', '[Data Entry] All sub-tasks complete. Reporting to Coordination Agent.', true);
+            setStepComplete('step-data-sup', '✓ Classification and journaling complete');
+
+            // === VERIFICATION SUPERVISOR ===
+            await sleep(400);
+            activateNode('arch-verify-supervisor');
+            setStepActive('step-verify-sup');
+            addLogEntry('supervisor', '[Verification] Received task delegation from Coordination Agent', true);
+            await sleep(300);
+            addLogEntry('supervisor', '[Verification] Delegating to Bank Reconciliation sub-agent');
+            await sleep(300);
+
+            // === BANK RECONCILIATION SUB-AGENT ===
+            activateNode('arch-reconciler');
+            setStepActive('step-reconcile');
+            addLogEntry('subagent', '[Reconciliation] Received bank statement and journal entries for matching');
+            await sleep(600);
+
+            // Run reconciliation
+            const bankTotal = bankTransactions.reduce((sum, t) => sum + t.amount, 0);
+            const discrepancies = [];
+
+            // Check for duplicates
+            const descCounts = {};
+            bankTransactions.forEach(t => {
+                const key = `${t.description}-${t.amount}`;
+                descCounts[key] = (descCounts[key] || 0) + 1;
+            });
+
+            Object.entries(descCounts).forEach(([key, count]) => {
+                if (count > 1) {
+                    const [desc] = key.split('-');
+                    discrepancies.push({
+                        type: 'duplicate',
+                        description: desc,
+                        message: `Transaction "${desc}" appears ${count} times`
+                    });
+                }
+            });
+
+            // Flag low confidence items
+            classifiedTransactions.filter(t => t.confidence === 'low').forEach(t => {
+                discrepancies.push({
+                    type: 'missing-books',
+                    description: t.description,
+                    amount: t.amount,
+                    message: `Low confidence classification - needs review`
+                });
+            });
+
+            const matched = bankTransactions.length - discrepancies.length;
+            const reconciledPct = Math.round((matched / bankTransactions.length) * 100);
+
+            reconciliationResults = {
+                bankBalance: bankTotal,
+                bookBalance: bankTotal,
+                matched,
+                discrepancies,
+                reconciledPct
+            };
+
+            addLogEntry('subagent', '[Reconciliation] Matched ' + matched + ' of ' + bankTransactions.length + ' transactions');
+            await sleep(300);
+            if (discrepancies.length > 0) {
+                addLogEntry('subagent', '[Reconciliation] Found ' + discrepancies.length + ' items requiring review');
+            }
+            await sleep(200);
+            addLogEntry('subagent', '[Reconciliation] Returning results to Verification Supervisor');
+            completeNode('arch-reconciler');
+            setStepComplete('step-reconcile', `✓ ${reconciledPct}% reconciled (${discrepancies.length} items to review)`);
+
+            // Verification Supervisor completes
+            await sleep(300);
+            completeNode('arch-verify-supervisor');
+            addLogEntry('supervisor', '[Verification] Reconciliation complete. Reporting to Coordination Agent.', true);
+            setStepComplete('step-verify-sup', '✓ Verification and reconciliation complete');
+
+            // Final coordination
+            await sleep(400);
+            addLogEntry('coordination', 'All supervisors reported success. Workflow complete.', true);
+            addLogEntry('coordination', 'Total processing time: ' + getElapsedTime());
+
+            // Show results
+            showResults();
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ============================================
+        // RESULTS DISPLAY
+        // ============================================
+        function showResults() {
+            document.getElementById('results-section').classList.add('visible');
+
+            // Summary cards
+            const summaryGrid = document.getElementById('summary-grid');
+            const totalRevenue = classifiedTransactions.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+            const totalExpenses = Math.abs(classifiedTransactions.filter(t => t.amount < 0).reduce((s, t) => s + t.amount, 0));
+
+            summaryGrid.innerHTML = `
+                <div class="summary-card">
+                    <div class="value">${bankTransactions.length}</div>
+                    <div class="label">Transactions</div>
+                </div>
+                <div class="summary-card success">
+                    <div class="value">$${totalRevenue.toLocaleString('en-US', {minimumFractionDigits: 0})}</div>
+                    <div class="label">Total Revenue</div>
+                </div>
+                <div class="summary-card error">
+                    <div class="value">$${totalExpenses.toLocaleString('en-US', {minimumFractionDigits: 0})}</div>
+                    <div class="label">Total Expenses</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value">${journalEntries.length}</div>
+                    <div class="label">Journal Entries</div>
+                </div>
+                <div class="summary-card ${reconciliationResults.reconciledPct >= 90 ? 'success' : 'warning'}">
+                    <div class="value">${reconciliationResults.reconciledPct}%</div>
+                    <div class="label">Reconciled</div>
+                </div>
+                <div class="summary-card ${reconciliationResults.discrepancies.length === 0 ? 'success' : 'warning'}">
+                    <div class="value">${reconciliationResults.discrepancies.length}</div>
+                    <div class="label">Items to Review</div>
+                </div>
+            `;
+
+            // Classified transactions tab
+            document.getElementById('tab-classified').innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Category</th>
+                            <th>Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${classifiedTransactions.map(t => `
+                            <tr>
+                                <td>${t.date}</td>
+                                <td>${t.description}</td>
+                                <td class="${t.amount >= 0 ? 'amount-positive' : 'amount-negative'}">
+                                    ${t.amount >= 0 ? '+' : ''}$${t.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}
+                                </td>
+                                <td>${t.category}</td>
+                                <td><span class="category-badge ${t.confidence}">${t.confidence}</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            // Journal entries tab
+            document.getElementById('tab-journal').innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>JE #</th>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Debit Account</th>
+                            <th>Credit Account</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${journalEntries.map(je => `
+                            <tr>
+                                <td>JE-${String(je.id).padStart(3, '0')}</td>
+                                <td>${je.date}</td>
+                                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${je.description}</td>
+                                <td class="debit">${je.debitAccount}</td>
+                                <td class="credit">${je.creditAccount}</td>
+                                <td>$${je.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            // Reconciliation tab
+            const reconTab = document.getElementById('tab-reconciliation');
+            if (reconciliationResults.discrepancies.length === 0) {
+                reconTab.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--success);">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 1rem;">
+                            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                            <path d="M22 4L12 14.01l-3-3"/>
+                        </svg>
+                        <div style="font-size: 1.25rem; font-weight: 600;">Fully Reconciled!</div>
+                        <div style="color: var(--text-muted); margin-top: 0.5rem;">All transactions matched successfully.</div>
+                    </div>
+                `;
+            } else {
+                reconTab.innerHTML = `
+                    <div style="margin-bottom: 1rem; color: var(--text-secondary);">
+                        <strong>${reconciliationResults.discrepancies.length}</strong> items need your attention:
+                    </div>
+                    ${reconciliationResults.discrepancies.map((d, idx) => `
+                        <div class="discrepancy-item ${d.type}" id="discrepancy-${idx}">
+                            <div class="discrepancy-header">
+                                <span class="discrepancy-type ${d.type}">
+                                    ${d.type === 'duplicate' ? 'Duplicate Entry' : d.type === 'missing-books' ? 'Needs Review' : d.type}
+                                </span>
+                                ${d.amount ? `<span style="font-family: 'JetBrains Mono', monospace; color: var(--text-muted);">$${Math.abs(d.amount).toFixed(2)}</span>` : ''}
+                            </div>
+                            <div class="discrepancy-details">
+                                <strong>${d.description}</strong><br>
+                                ${d.message}
+                            </div>
+                            <div class="discrepancy-actions">
+                                ${d.type === 'duplicate' ? `
+                                    <button class="action-btn delete" onclick="handleAction(${idx}, 'delete')">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                                        </svg>
+                                        Delete Duplicate
+                                    </button>
+                                    <button class="action-btn" onclick="handleAction(${idx}, 'keep')">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M9 12l2 2 4-4"/>
+                                        </svg>
+                                        Keep Both
+                                    </button>
+                                ` : `
+                                    <button class="action-btn" onclick="handleAction(${idx}, 'reclassify')">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                        </svg>
+                                        Reclassify
+                                    </button>
+                                `}
+                                <button class="action-btn approve" onclick="handleAction(${idx}, 'approve')">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                                        <path d="M22 4L12 14.01l-3-3"/>
+                                    </svg>
+                                    Mark Reviewed
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            }
+        }
+
+        // ============================================
+        // DISCREPANCY ACTIONS
+        // ============================================
+        function handleAction(idx, action) {
+            const item = document.getElementById(`discrepancy-${idx}`);
+            const discrepancy = reconciliationResults.discrepancies[idx];
+
+            switch(action) {
+                case 'delete':
+                    item.classList.add('resolved');
+                    item.querySelector('.discrepancy-actions').innerHTML = `<span class="resolved-badge">✓ Duplicate removed</span>`;
+                    updateReviewCount(-1);
+                    break;
+                case 'keep':
+                    item.classList.add('resolved');
+                    item.querySelector('.discrepancy-actions').innerHTML = `<span class="resolved-badge">✓ Marked as intentional</span>`;
+                    updateReviewCount(-1);
+                    break;
+                case 'reclassify':
+                    showReclassifyOptions(idx, item);
+                    break;
+                case 'approve':
+                    item.classList.add('resolved');
+                    item.querySelector('.discrepancy-actions').innerHTML = `<span class="resolved-badge">✓ Reviewed and approved</span>`;
+                    updateReviewCount(-1);
+                    break;
+            }
+        }
+
+        function showReclassifyOptions(idx, item) {
+            const categories = ['Revenue', 'Payroll', 'Travel', 'Software & Subscriptions', 'Office Supplies', 'Utilities', 'Rent', 'Insurance'];
+            const actionsDiv = item.querySelector('.discrepancy-actions');
+
+            actionsDiv.innerHTML = `
+                <select id="reclass-select-${idx}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.4rem; border-radius: 4px; font-size: 0.75rem;">
+                    <option value="">Select category...</option>
+                    ${categories.map(c => `<option value="${c}">${c}</option>`).join('')}
+                </select>
+                <button class="action-btn approve" onclick="confirmReclassify(${idx})">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 12l2 2 4-4"/>
+                    </svg>
+                    Confirm
+                </button>
+                <button class="action-btn" onclick="showResults()">Cancel</button>
+            `;
+        }
+
+        function confirmReclassify(idx) {
+            const select = document.getElementById(`reclass-select-${idx}`);
+            const newCategory = select.value;
+            const item = document.getElementById(`discrepancy-${idx}`);
+
+            if (newCategory) {
+                item.classList.add('resolved');
+                item.querySelector('.discrepancy-actions').innerHTML = `<span class="resolved-badge">✓ Reclassified as ${newCategory}</span>`;
+                updateReviewCount(-1);
+            }
+        }
+
+        function updateReviewCount(change) {
+            const summaryCard = document.querySelector('.summary-card:last-child .value');
+            const currentCount = parseInt(summaryCard.textContent);
+            const newCount = Math.max(0, currentCount + change);
+            summaryCard.textContent = newCount;
+
+            // Update reconciliation percentage
+            const reconCard = document.querySelector('.summary-card:nth-last-child(2) .value');
+            const total = bankTransactions.length;
+            const newPct = Math.round(((total - newCount) / total) * 100);
+            reconCard.textContent = newPct + '%';
+        }
+
+        function showTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+date,description,amount,reference,account,category
+2024-01-02,Stripe - Client Retainer,8500.00,STR-101,Operating,Revenue
+2024-01-03,ADP - Staff Payroll,-12450.00,ADP-0103,Operating,Payroll
+2024-01-03,ADP - Payroll Tax,-2890.00,ADP-0103T,Operating,Payroll Tax
+2024-01-04,Thomson Reuters Checkpoint,-425.00,TR-2024,Operating,Software
+2024-01-05,AICPA Membership,-495.00,AICPA-24,Operating,Prof Development
+2024-01-07,Becker CPE Course,-299.00,BECK-107,Operating,Prof Development
+2024-01-08,CCH Axcess Tax,-1200.00,CCH-8812,Operating,Software
+2024-01-09,Smith Tax Prep Payment,850.00,DEP-4521,Operating,Revenue
+2024-01-10,Office Depot Supplies,-243.56,OD-9921,Operating,Office Supplies
+2024-01-12,CAMICO E&O Insurance,-2400.00,CAM-2024,Operating,Insurance
+2024-01-14,State CPA Conference,-450.00,CONF-114,Operating,Prof Development
+2024-01-15,Office Rent - January,-4500.00,RENT-0115,Operating,Rent
+2024-01-15,ADP - Staff Payroll,-12450.00,ADP-0115,Operating,Payroll
+2024-01-15,ADP - Payroll Tax,-2890.00,ADP-0115T,Operating,Payroll Tax
+2024-01-17,Acme Bookkeeping Fee,1200.00,DEP-4523,Operating,Revenue
+2024-01-17,Acme Bookkeeping Fee,1200.00,DEP-4523,Operating,Revenue
+2024-01-18,JetBlue - Client Travel,-342.00,JB-8821,Operating,Travel
+2024-01-19,Hilton - Conference Stay,-189.00,HLT-442,Operating,Travel
+2024-01-20,Xero Partner Subscription,-50.00,XERO-120,Operating,Software
+2024-01-22,Stripe - Apex Retainer,12500.00,STR-102,Operating,Revenue
+2024-01-23,Dext Receipt Bank,-50.00,DEXT-123,Operating,Software
+2024-01-24,Karbon Workflow,-99.00,KRB-2024,Operating,Software
+2024-01-25,Verizon Business,-245.00,VZ-0125,Operating,Utilities
+2024-01-26,Lacerte Tax Software,-3200.00,LAC-2024,Operating,Software
+2024-01-29,ADP - Staff Payroll,-12450.00,ADP-0129,Operating,Payroll
+2024-01-29,ADP - Payroll Tax,-2890.00,ADP-0129T,Operating,Payroll Tax
+2024-01-30,Wire - Apex Corp,7500.00,WIRE-8821,Operating,Revenue
+2024-01-31,Bank Service Fee,-35.00,FEE-0131,Operating,Bank Fees
+2024-02-01,SafeSend Returns,-75.00,SS-0201,Operating,Software
+2024-02-02,Davis 1040 Prep,425.00,DEP-4530,Operating,Revenue
+2024-02-05,Calendly Scheduling,-16.00,CAL-0205,Operating,Software
+2024-02-06,CCH Research,-650.00,WK-0206,Operating,Software
+2024-02-08,Zoom Video,-199.90,ZM-0208,Operating,Software
+2024-02-08,Zoom Video,-199.90,ZM-0208,Operating,Software
+2024-02-12,ADP - Staff Payroll,-12450.00,ADP-0212,Operating,Payroll
+2024-02-12,ADP - Payroll Tax,-2890.00,ADP-0212T,Operating,Payroll Tax
+2024-02-14,Monthly Bookkeeping Client,950.00,DEP-4535,Operating,Revenue
+2024-02-15,Office Rent - February,-4500.00,RENT-0215,Operating,Rent
+2024-02-26,ADP - Staff Payroll,-12450.00,ADP-0226,Operating,Payroll
+2024-02-26,ADP - Payroll Tax,-2809.00,ADP-0226T,Operating,Payroll Tax
+2024-02-28,Wire - Smith Holdings,4000.00,WIRE-9921,Operating,Revenue
+2024-02-28,ProConnect Tax,-89.00,PCT-228,Operating,Software

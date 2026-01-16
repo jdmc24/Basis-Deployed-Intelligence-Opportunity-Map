@@ -96,6 +96,40 @@
             font-weight: 400;
         }
 
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            margin-right: 36px;
+        }
+
+        .nav-link {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 8px 14px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 5px;
+            background: var(--bg-elevated);
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-link:hover {
+            border-color: var(--basis-teal);
+            color: var(--basis-teal-light);
+            background: var(--bg-hover);
+        }
+
+        .nav-link svg {
+            width: 14px;
+            height: 14px;
+        }
+
         .header-stats {
             display: flex;
             gap: 36px;
@@ -449,6 +483,32 @@
             <div class="logo-divider"></div>
             <div class="logo-sub">Target Intelligence Map</div>
         </div>
+        <nav class="header-nav">
+            <a href="agents/transaction-classifier/index.html" class="nav-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Transaction Classifier
+            </a>
+            <a href="agents/bank-reconciliation/index.html" class="nav-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                </svg>
+                Bank Reconciliation
+            </a>
+            <a href="agents/journal-entry-generator/index.html" class="nav-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 7h6m-6 4h6m-6 4h4m-7 4h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                Journal Entry Generator
+            </a>
+            <a href="agents/orchestrator/index.html" class="nav-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+                </svg>
+                Multi-Agent Orchestrator
+            </a>
+        </nav>
         <div class="header-stats">
             <div class="stat">
                 <div class="stat-value" id="filtered-count">0</div>
@@ -506,6 +566,7 @@
 
             <div class="methodology-link">
                 Opportunity = Est. CAS Staff × $5K/seat/yr. <a href="RESEARCH.md" target="_blank">View methodology</a>
+                <div style="margin-top: 0.5rem;">Basis Deployed Intelligence for Jake McCorkle</div>
             </div>
         </div>
 
