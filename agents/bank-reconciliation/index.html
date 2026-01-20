@@ -1033,10 +1033,29 @@
                             <span class="engine-icon">🔀</span>
                             <span>Hybrid</span>
                         </button>
+                        <button class="engine-btn" data-engine="ollama" onclick="setEngine('ollama')">
+                            <span class="engine-icon">🦙</span>
+                            <span>Ollama</span>
+                        </button>
                         <button class="engine-btn" data-engine="openai" onclick="setEngine('openai')">
                             <span class="engine-icon">🤖</span>
                             <span>OpenAI</span>
                         </button>
+                    </div>
+
+                    <div class="ollama-config" id="ollama-config" style="display: none; margin-top: 1rem;">
+                        <label>Ollama Model</label>
+                        <select id="ollama-model" style="width: 100%; padding: 0.5rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
+                            <option value="llama3.2">Llama 3.2 (3B)</option>
+                            <option value="llama3.1">Llama 3.1 (8B)</option>
+                            <option value="mistral">Mistral (7B)</option>
+                            <option value="phi3">Phi-3 (3.8B)</option>
+                        </select>
+                        <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="ollama-status" id="ollama-status">⚪ Not checked</span>
+                            <button onclick="checkOllamaConnection()" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.7rem;">Check</button>
+                        </div>
+                        <p class="hint">Requires Ollama running locally (localhost:11434)</p>
                     </div>
 
                     <div class="openai-config" id="openai-config" style="display: none; margin-top: 1rem;">
@@ -1339,9 +1358,84 @@
                 btn.classList.toggle('active', btn.dataset.engine === engine);
             });
 
-            // Show/hide OpenAI config
+            // Show/hide config panels
+            const ollamaConfig = document.getElementById('ollama-config');
             const openaiConfig = document.getElementById('openai-config');
+
+            ollamaConfig.style.display = (engine === 'ollama') ? 'block' : 'none';
             openaiConfig.style.display = (engine === 'openai' || engine === 'hybrid') ? 'block' : 'none';
+
+            if (engine === 'ollama') {
+                checkOllamaConnection();
+            }
+        }
+
+        async function checkOllamaConnection() {
+            const statusEl = document.getElementById('ollama-status');
+            statusEl.textContent = '🟡 Checking...';
+
+            try {
+                const response = await fetch('http://localhost:11434/api/tags', {
+                    method: 'GET',
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const models = data.models?.map(m => m.name) || [];
+                    statusEl.textContent = `🟢 Connected (${models.length} models)`;
+                    statusEl.style.color = 'var(--success)';
+                } else {
+                    statusEl.textContent = '🔴 Not responding';
+                    statusEl.style.color = 'var(--error)';
+                }
+            } catch (error) {
+                statusEl.textContent = '🔴 Not running';
+                statusEl.style.color = 'var(--error)';
+            }
+        }
+
+        async function matchWithOllama(bankTxn, bookRecords) {
+            const model = document.getElementById('ollama-model').value;
+            const booksContext = bookRecords.map((b, idx) =>
+                `[${idx}] ${b.date} | ${b.description} | ${b.amount} | ref: ${b.reference || 'none'}`
+            ).join('\n');
+
+            try {
+                const response = await fetch('http://localhost:11434/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: model,
+                        prompt: `You are a bank reconciliation expert. Match this bank transaction to a book entry.
+
+Bank Transaction:
+Date: ${bankTxn.date}
+Description: ${bankTxn.description}
+Amount: ${bankTxn.amount}
+Reference: ${bankTxn.reference || 'none'}
+
+Book entries:
+${booksContext}
+
+Rules:
+- Amounts must match exactly or be very close
+- Dates should be within 5 days
+- Reference numbers are strong indicators
+
+Respond with ONLY a JSON object: {"matchIndex": <index or null>, "confidence": "high"|"medium"|"low", "reason": "<brief>"}`,
+                        stream: false
+                    })
+                });
+
+                const data = await response.json();
+                const match = data.response.match(/\{[\s\S]*\}/);
+                if (match) {
+                    return JSON.parse(match[0]);
+                }
+            } catch (error) {
+                console.error('Ollama matching failed:', error);
+            }
+            return { matchIndex: null, confidence: 'low', reason: 'Ollama error' };
         }
 
         // ===========================================
@@ -1787,6 +1881,81 @@ ${booksContext}`
             return { matches, discrepancies };
         }
 
+        async function reconcileWithOllama(bankRecords, bookRecords) {
+            const matches = [];
+            const discrepancies = [];
+            const usedBookIndices = new Set();
+
+            // Find duplicates first
+            const bookDuplicates = findDuplicates(bookRecords);
+            bookDuplicates.forEach(dup => {
+                discrepancies.push({
+                    type: 'duplicate',
+                    description: dup.description,
+                    amount: normalizeAmount(dup.amount),
+                    date: dup.date,
+                    reference: dup.reference,
+                    source: 'books',
+                    count: dup.count
+                });
+            });
+
+            // Process each bank transaction with Ollama
+            for (let bankIdx = 0; bankIdx < bankRecords.length; bankIdx++) {
+                const bank = bankRecords[bankIdx];
+                const result = await matchWithOllama(bank, bookRecords);
+
+                if (result.matchIndex !== null && !usedBookIndices.has(result.matchIndex)) {
+                    const book = bookRecords[result.matchIndex];
+                    const bankAmount = normalizeAmount(bank.amount);
+                    const bookAmount = normalizeAmount(book.amount);
+
+                    if (Math.abs(bankAmount - bookAmount) >= 0.01) {
+                        discrepancies.push({
+                            type: 'mismatch',
+                            description: bank.description,
+                            bankAmount: bankAmount,
+                            bookAmount: bookAmount,
+                            difference: bankAmount - bookAmount,
+                            date: bank.date,
+                            reference: bank.reference
+                        });
+                    }
+
+                    matches.push({
+                        bank: bank,
+                        book: book,
+                        score: result.confidence === 'high' ? 95 : result.confidence === 'medium' ? 75 : 50,
+                        llmReason: result.reason
+                    });
+                    usedBookIndices.add(result.matchIndex);
+                } else {
+                    discrepancies.push({
+                        type: 'missing_books',
+                        description: bank.description,
+                        amount: normalizeAmount(bank.amount),
+                        date: bank.date,
+                        reference: bank.reference
+                    });
+                }
+            }
+
+            // Find unmatched book transactions
+            bookRecords.forEach((book, idx) => {
+                if (!usedBookIndices.has(idx)) {
+                    discrepancies.push({
+                        type: 'missing_bank',
+                        description: book.description,
+                        amount: normalizeAmount(book.amount),
+                        date: book.date,
+                        reference: book.reference
+                    });
+                }
+            });
+
+            return { matches, discrepancies };
+        }
+
         async function reconcileHybrid(bankRecords, bookRecords, apiKey) {
             // Start with rules-based matching
             const rulesResult = reconcile(bankRecords, bookRecords);
@@ -2165,6 +2334,8 @@ ${booksContext}`
                         return;
                     }
                     reconciliationResults = await reconcileWithLLM(bankData, booksData, apiKey);
+                } else if (currentEngine === 'ollama') {
+                    reconciliationResults = await reconcileWithOllama(bankData, booksData);
                 } else if (currentEngine === 'hybrid') {
                     const apiKey = document.getElementById('openai-key').value.trim();
                     reconciliationResults = await reconcileHybrid(bankData, booksData, apiKey);

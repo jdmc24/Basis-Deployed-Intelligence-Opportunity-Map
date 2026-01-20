@@ -1407,10 +1407,29 @@
                         <span class="engine-icon">🔀</span>
                         <span>Hybrid</span>
                     </button>
+                    <button class="engine-btn" data-engine="ollama" onclick="setEngine('ollama')">
+                        <span class="engine-icon">🦙</span>
+                        <span>Ollama</span>
+                    </button>
                     <button class="engine-btn" data-engine="openai" onclick="setEngine('openai')">
                         <span class="engine-icon">🤖</span>
                         <span>OpenAI</span>
                     </button>
+                </div>
+
+                <div class="ollama-config" id="ollama-config" style="display: none;">
+                    <label>Ollama Model</label>
+                    <select id="ollama-model" style="width: 100%; padding: 0.6rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; margin-bottom: 0.5rem;">
+                        <option value="llama3.2">Llama 3.2 (3B)</option>
+                        <option value="llama3.1">Llama 3.1 (8B)</option>
+                        <option value="mistral">Mistral (7B)</option>
+                        <option value="phi3">Phi-3 (3.8B)</option>
+                    </select>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span id="ollama-status">⚪ Not checked</span>
+                        <button onclick="checkOllamaConnection()" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.7rem;">Check</button>
+                    </div>
+                    <p class="hint">Requires Ollama running locally (localhost:11434)</p>
                 </div>
 
                 <div class="openai-config" id="openai-config" style="display: none;">
@@ -1596,9 +1615,109 @@
                 btn.classList.toggle('active', btn.dataset.engine === engine);
             });
 
-            // Show/hide OpenAI config
+            // Show/hide config panels
+            const ollamaConfig = document.getElementById('ollama-config');
             const openaiConfig = document.getElementById('openai-config');
+
+            ollamaConfig.style.display = (engine === 'ollama') ? 'block' : 'none';
             openaiConfig.style.display = (engine === 'openai' || engine === 'hybrid') ? 'block' : 'none';
+
+            if (engine === 'ollama') {
+                checkOllamaConnection();
+            }
+        }
+
+        async function checkOllamaConnection() {
+            const statusEl = document.getElementById('ollama-status');
+            statusEl.textContent = '🟡 Checking...';
+
+            try {
+                const response = await fetch('http://localhost:11434/api/tags');
+                if (response.ok) {
+                    const data = await response.json();
+                    const models = data.models?.map(m => m.name) || [];
+                    statusEl.textContent = `🟢 Connected (${models.length} models)`;
+                    statusEl.style.color = 'var(--success)';
+                } else {
+                    statusEl.textContent = '🔴 Not responding';
+                    statusEl.style.color = 'var(--error)';
+                }
+            } catch (error) {
+                statusEl.textContent = '🔴 Not running';
+                statusEl.style.color = 'var(--error)';
+            }
+        }
+
+        async function classifyWithOllama(transaction) {
+            const model = document.getElementById('ollama-model').value;
+            const categories = Object.keys(journalEntryRules).join(', ');
+
+            try {
+                const response = await fetch('http://localhost:11434/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: model,
+                        prompt: `You are a bookkeeping assistant. Categorize this bank transaction.
+
+Categories: ${categories}
+
+Transaction: "${transaction.description}" Amount: $${transaction.amount}
+
+Respond with ONLY JSON: {"category": "CategoryName", "confidence": "high"|"medium"|"low"}`,
+                        stream: false
+                    })
+                });
+
+                const data = await response.json();
+                const match = data.response.match(/\{[\s\S]*\}/);
+                if (match) {
+                    return JSON.parse(match[0]);
+                }
+            } catch (error) {
+                console.error('Ollama classification failed:', error);
+            }
+            return null;
+        }
+
+        async function classifyTransactionsWithOllama(transactions) {
+            const results = [];
+
+            for (const txn of transactions) {
+                const llmResult = await classifyWithOllama(txn);
+
+                if (llmResult && llmResult.category) {
+                    results.push({
+                        ...txn,
+                        id: results.length + 1,
+                        category: llmResult.category,
+                        confidence: llmResult.confidence || 'medium',
+                        source: 'Ollama'
+                    });
+                } else {
+                    // Fallback to rules
+                    let category = 'Uncategorized';
+                    let confidence = 'low';
+
+                    for (const rule of classificationRules) {
+                        if (rule.pattern.test(txn.description)) {
+                            category = rule.category;
+                            confidence = rule.confidence;
+                            break;
+                        }
+                    }
+
+                    results.push({
+                        ...txn,
+                        id: results.length + 1,
+                        category,
+                        confidence,
+                        source: 'Rules (Ollama fallback)'
+                    });
+                }
+            }
+
+            return results;
         }
 
         // ============================================
@@ -2034,6 +2153,8 @@ Respond with ONLY a JSON object: {"category": "CategoryName", "confidence": "hig
                     addLogEntry('subagent', '[Classifier] Warning: No API key - falling back to rules');
                     currentEngine = 'rules';
                 }
+            } else if (currentEngine === 'ollama') {
+                addLogEntry('subagent', '[Classifier] Using Ollama engine for classification' + engineBadge);
             } else if (currentEngine === 'hybrid') {
                 addLogEntry('subagent', '[Classifier] Using Hybrid engine (rules + LLM fallback)' + engineBadge);
             } else {
@@ -2045,6 +2166,8 @@ Respond with ONLY a JSON object: {"category": "CategoryName", "confidence": "hig
             // Run classification based on engine
             if (currentEngine === 'openai' && apiKey) {
                 classifiedTransactions = await classifyTransactionsWithLLM(bankTransactions, apiKey);
+            } else if (currentEngine === 'ollama') {
+                classifiedTransactions = await classifyTransactionsWithOllama(bankTransactions);
             } else if (currentEngine === 'hybrid') {
                 classifiedTransactions = await classifyTransactionsHybrid(bankTransactions, apiKey);
             } else {

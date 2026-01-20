@@ -1173,6 +1173,10 @@
                     <span class="engine-icon">🔀</span>
                     <span>Hybrid</span>
                 </button>
+                <button class="engine-btn" data-engine="ollama" onclick="setEngine('ollama')">
+                    <span class="engine-icon">🦙</span>
+                    <span>Ollama</span>
+                </button>
                 <button class="engine-btn" data-engine="openai" onclick="setEngine('openai')">
                     <span class="engine-icon">🤖</span>
                     <span>OpenAI</span>
@@ -1180,6 +1184,20 @@
             </div>
 
             <div class="api-section">
+                <div class="api-input-group" id="ollama-config" style="display: none;">
+                    <label>Ollama Model</label>
+                    <select id="ollama-model" style="width: 100%; padding: 0.75rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;">
+                        <option value="llama3.2">Llama 3.2 (3B)</option>
+                        <option value="llama3.1">Llama 3.1 (8B)</option>
+                        <option value="mistral">Mistral (7B)</option>
+                        <option value="phi3">Phi-3 (3.8B)</option>
+                    </select>
+                    <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span id="ollama-status">⚪ Not checked</span>
+                        <button onclick="checkOllamaConnection()" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">Check Connection</button>
+                    </div>
+                    <div class="api-note">Requires Ollama running locally (localhost:11434)</div>
+                </div>
                 <div class="api-input-group" id="openai-config" style="display: none;">
                     <label for="api-key">OpenAI API Key</label>
                     <input type="password" id="api-key" placeholder="sk-...">
@@ -1520,9 +1538,123 @@
                 btn.classList.toggle('active', btn.dataset.engine === engine);
             });
 
-            // Show/hide OpenAI config
+            // Show/hide config panels
+            const ollamaConfig = document.getElementById('ollama-config');
             const openaiConfig = document.getElementById('openai-config');
+
+            ollamaConfig.style.display = (engine === 'ollama') ? 'block' : 'none';
             openaiConfig.style.display = (engine === 'openai' || engine === 'hybrid') ? 'block' : 'none';
+
+            if (engine === 'ollama') {
+                checkOllamaConnection();
+            }
+        }
+
+        async function checkOllamaConnection() {
+            const statusEl = document.getElementById('ollama-status');
+            statusEl.textContent = '🟡 Checking...';
+
+            try {
+                const response = await fetch('http://localhost:11434/api/tags');
+                if (response.ok) {
+                    const data = await response.json();
+                    const models = data.models?.map(m => m.name) || [];
+                    statusEl.textContent = `🟢 Connected (${models.length} models)`;
+                    statusEl.style.color = 'var(--success)';
+                } else {
+                    statusEl.textContent = '🔴 Not responding';
+                    statusEl.style.color = 'var(--error)';
+                }
+            } catch (error) {
+                statusEl.textContent = '🔴 Not running';
+                statusEl.style.color = 'var(--error)';
+            }
+        }
+
+        async function generateEntryWithOllama(transaction) {
+            const model = document.getElementById('ollama-model').value;
+            const accountList = Object.keys(entryRules).map(k => {
+                const r = entryRules[k];
+                return `${k}: Debit ${r.debit.account}, Credit ${r.credit.account}`;
+            }).join('\n');
+
+            try {
+                const response = await fetch('http://localhost:11434/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: model,
+                        prompt: `You are an expert accountant generating double-entry journal entries.
+
+Transaction:
+Date: ${transaction.date}
+Description: ${transaction.description}
+Amount: $${Math.abs(transaction.amount)} (${transaction.amount >= 0 ? 'receipt' : 'payment'})
+
+Common entry patterns:
+${accountList}
+
+Generate a journal entry. Respond with ONLY JSON:
+{"debitAccount": "Account", "debitType": "Asset|Liability|Expense|Revenue", "creditAccount": "Account", "creditType": "Asset|Liability|Expense|Revenue", "explanation": "Brief reason", "confidence": "high|medium|low", "transactionType": "receipt|expense|payroll|etc"}`,
+                        stream: false
+                    })
+                });
+
+                const data = await response.json();
+                const match = data.response.match(/\{[\s\S]*\}/);
+                if (match) {
+                    return JSON.parse(match[0]);
+                }
+            } catch (error) {
+                console.error('Ollama entry generation failed:', error);
+            }
+            return null;
+        }
+
+        async function generateEntriesWithOllama(txns) {
+            const entries = [];
+
+            for (let i = 0; i < txns.length; i++) {
+                const t = txns[i];
+                const result = await generateEntryWithOllama(t);
+
+                if (result) {
+                    entries.push({
+                        id: i + 1,
+                        date: t.date,
+                        description: t.description,
+                        type: result.transactionType || t.type || 'expense',
+                        amount: Math.abs(t.amount),
+                        debitAccount: result.debitAccount,
+                        debitType: result.debitType,
+                        creditAccount: result.creditAccount,
+                        creditType: result.creditType,
+                        explanation: result.explanation,
+                        confidence: result.confidence,
+                        source: 'Ollama'
+                    });
+                } else {
+                    // Fallback to rules
+                    const type = t.type || inferType(t);
+                    const rule = entryRules[type] || entryRules.expense;
+                    entries.push({
+                        id: i + 1,
+                        date: t.date,
+                        description: t.description,
+                        type: type,
+                        amount: Math.abs(t.amount),
+                        debitAccount: rule.debit.account,
+                        debitType: rule.debit.type,
+                        creditAccount: rule.credit.account,
+                        creditType: rule.credit.type,
+                        explanation: rule.explanation,
+                        confidence: rule.confidence,
+                        source: 'Rules (Ollama fallback)'
+                    });
+                }
+            }
+
+            return entries;
         }
 
         // ============================================
@@ -2008,6 +2140,8 @@ Amount: $${Math.abs(transaction.amount).toLocaleString()} (${transaction.amount 
             try {
                 if (currentEngine === 'openai') {
                     generatedEntries = await generateEntriesWithLLM(transactions, apiKey);
+                } else if (currentEngine === 'ollama') {
+                    generatedEntries = await generateEntriesWithOllama(transactions);
                 } else if (currentEngine === 'hybrid') {
                     generatedEntries = await generateEntriesHybrid(transactions, apiKey);
                 } else {
