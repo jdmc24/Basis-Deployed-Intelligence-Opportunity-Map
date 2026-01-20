@@ -8,90 +8,50 @@ An interactive dashboard identifying CPA firms that would be ideal customers for
 
 ## Overview
 
-This project was created as part of a job application for Basis. It demonstrates:
+This dashboard visualizes 45 target CPA firms across the United States, scored and prioritized based on their fit for Basis's AI-powered accounting automation platform.
 
-- **Market research** into the CPA firm landscape
-- **Strategic thinking** about ideal customer profiles
-- **Data visualization** of target opportunities
+## Features
 
-## What is Basis?
+- **Interactive US Map** - Leaflet-powered visualization with firm locations
+- **Priority Scoring** - High/Medium/Low ratings based on fit criteria
+- **Filtering & Search** - Filter by priority, state, or search by firm name
+- **Firm Details** - Click any firm to see detailed profile information
+- **Agent Navigation** - Quick links to all 4 AI agent demos
 
-Basis provides AI agents that automate Client Accounting Services (CAS) work for CPA firms. Their flagship customer, Wiss & Company, has reported **30% time savings** using the platform.
+## Scoring Criteria
 
-**Key use cases:**
-- Transaction entry into QuickBooks/Xero
-- Bank reconciliations
-- Journal entries with AI-generated explanations
-- Data verification
+Firms are scored based on factors that indicate good fit for Basis:
 
-## Dashboard Features
+| Factor | Weight | Description |
+|--------|--------|-------------|
+| CAS Focus | High | Firms emphasizing Client Accounting Services |
+| Tech Forward | High | Evidence of technology adoption |
+| Growth Mode | Medium | Actively expanding or hiring |
+| Firm Size | Medium | Mid-market firms (50-500 employees) |
+| Geographic | Low | Presence in tech-friendly markets |
 
-- **45 target firms** mapped across the US
-- **Priority ratings** (High/Medium/Low) based on fit criteria
-- **Filters** by region, opportunity size, and priority
-- **Opportunity sizing** based on estimated CAS staff
+## Priority Breakdown
 
-## Methodology
+| Priority | Count | Criteria |
+|----------|-------|----------|
+| **High** | 15 firms | Strong CAS focus + tech adoption signals |
+| **Medium** | 20 firms | Good fit with some gaps |
+| **Low** | 10 firms | Potential fit, needs validation |
 
-### Ideal Target Profile (Based on Wiss)
+## Data Sources
 
-| Criteria | Rationale |
-|----------|-----------|
-| 200-5,000 employees | Large enough for CAS volume, small enough to adopt startup software |
-| Strong CAS practice | Basis's primary use case |
-| Tech-forward culture | Willingness to adopt AI tools |
-| Regional/National firm | Budget for enterprise software |
-
-### Opportunity Calculation
-
-```
-Opportunity = Estimated CAS Staff × $5,000/seat/year
-
-Where:
-- Estimated CAS Staff = Total Employees × 18%
-- $5,000/seat/year = Enterprise SaaS pricing estimate
-```
-
-*Note: Actual Basis pricing is not public. These are estimates for demonstration.*
-
-### Priority Rating Logic
-
-- **High**: Strong CAS focus + tech-forward culture + right size (300-5000 employees)
-- **Medium**: Has CAS, good size, but may have longer sales cycles or competing priorities
-- **Low**: Very large (Big 4, likely build internally) or unclear CAS focus
-
-## Research Highlights
-
-### What Accountants Do With Time Savings
-
-| Before Basis | After Basis |
-|--------------|-------------|
-| Data entry | Client advisory |
-| Reconciliations | Business development |
-| Manual verification | Higher-margin services |
-
-### Open Questions
-
-- How will entry-level accountants learn fundamentals if AI handles basic tasks?
-- Will AI commoditize CAS services and drive down prices?
-- What's the change management challenge for adoption?
+- Firm websites and LinkedIn profiles
+- Accounting Today Top 100
+- CPA Practice Advisor rankings
+- Regional business journals
 
 ## Tech Stack
 
-- **HTML/CSS/JavaScript** - No build step, runs in any browser
-- **[Leaflet.js](https://leafletjs.com/)** - Interactive mapping
-- **[CartoDB Dark Matter](https://carto.com/basemaps/)** - Map tiles
-- **Basis brand fonts** - JetBrains Mono, Oxygen
-
-## Sources
-
-- [Wiss Partnership Announcement](https://wiss.com/wiss-announces-strategic-partnership-with-accounting-ai-platform-basis/)
-- [Basis $34M Series A (Accounting Today)](https://www.accountingtoday.com/news/major-ai-players-back-basis-with-34-million-series-a)
-- [OpenAI Case Study on Basis](https://openai.com/index/basis/)
-- [Future Finance Podcast - Mitchell Troyanovsky](https://blog.qflow.ai/post/future-finance-podcast-mitchell-troyanovsky/)
-
-*Full research notes available upon request.*
+- **Leaflet.js** - Interactive mapping
+- **Vanilla JavaScript** - No framework dependencies
+- **CSS Grid/Flexbox** - Responsive layout
+- **GitHub Pages** - Static hosting
 
 ---
 
-*Built by Jake McCorkle as part of a Basis job application, January 2025*
+*Created by Jake McCorkle as part of the Deployed Intelligence project application for Basis.*

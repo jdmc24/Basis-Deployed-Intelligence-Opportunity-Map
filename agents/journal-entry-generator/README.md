@@ -1,117 +1,79 @@
 # Journal Entry Generator
 
-An AI-powered agent that automatically generates double-entry journal entries from source transactions. Built as a demonstration of accounting workflow automation.
+An AI-powered agent that automatically generates double-entry journal entries from source transactions. Supports multiple processing engines including rule-based patterns and LLM-powered account selection.
 
-## How It Works
-
-The agent analyzes transactions and applies **accounting rules** to generate proper journal entries:
-
-### Entry Generation Logic
-
-Each transaction is analyzed and classified:
-
-| Transaction Type | Debit Account | Credit Account |
-|------------------|---------------|----------------|
-| Cash Receipt | Cash | Accounts Receivable / Revenue |
-| Operating Expense | Operating Expenses | Cash / Accounts Payable |
-| Payroll | Salaries & Wages | Cash |
-| Asset Purchase | Fixed Assets | Cash / Accounts Payable |
-| Depreciation | Depreciation Expense | Accumulated Depreciation |
-| Inventory Purchase | Inventory | Cash / Accounts Payable |
-| Deferred Revenue | Cash | Deferred Revenue |
-| Revenue Recognition | Deferred Revenue | Service Revenue |
-| Accrued Expense | Expense Account | Accrued Liabilities |
-
-### Confidence Levels
-
-| Level | Score | Meaning |
-|-------|-------|---------|
-| **High** | 95%+ | Clear transaction type, standard entry |
-| **Medium** | 80-94% | May need review, some ambiguity |
-| **Low** | <80% | Manual review recommended |
-
-## Features
-
-- **Single file upload** - CSV with transaction data
-- **Smart classification** - Infers entry type from description and amount
-- **Double-entry validation** - Debits always equal credits
-- **AI explanations** - Plain-English reasoning for each entry
-- **Confidence scoring** - Flags entries needing review
-- **Two sample scenarios** - Simple (15 txns) and Complex (25 txns with accruals)
-
-## Usage
-
-1. Open `index.html` in a browser
-2. Upload transaction CSV (or click a sample scenario)
-3. Click "Generate Journal Entries"
-4. Review summary cards for overview
-5. Click individual entries to see full details and explanations
-6. (Optional) Add OpenAI API key for enhanced AI explanations
-
-## CSV Format
-
-```csv
-date,description,amount,type
-2024-01-02,Client payment - ABC Corp Invoice #1001,5000,receipt
-2024-01-03,Office supplies - Staples,-245.50,expense
-2024-01-05,Monthly rent payment,-3500,expense
-2024-01-10,Employee payroll - January W1,-12500,payroll
-```
-
-### Supported Transaction Types
-
-| Type | Description |
-|------|-------------|
-| `receipt` | Cash received (positive amount) |
-| `expense` | Operating expense (negative amount) |
-| `payroll` | Payroll/salary payment |
-| `prepaid` | Prepaid expense (e.g., annual insurance) |
-| `asset` | Capital asset purchase |
-| `deferred` | Deferred revenue received |
-| `inventory` | Inventory purchase |
-| `accrual` | Accrued expense |
-| `depreciation` | Depreciation entry |
-| `cogs` | Cost of goods sold |
-
-*Note: If `type` column is missing, the agent will infer type from description and amount.*
-
-## Sample Data
-
-Two scenarios demonstrate the agent's capabilities:
-
-### Simple Scenario
-- 15 transactions
-- Basic revenue, expenses, payroll
-- All high-confidence entries
-- Tests standard bookkeeping automation
-
-### Complex Scenario
-- 25 transactions
-- Includes accruals, deferrals, depreciation, adjustments
-- Mix of confidence levels
-- Tests handling of month-end accounting
-
-## Technical Details
-
-- Pure HTML/CSS/JavaScript (no build step)
-- Runs entirely in browser
-- OpenAI API calls made client-side (key never stored)
-- Dark theme matching the main Basis Target Map dashboard
-
-## Accounting Principles Applied
-
-- **Double-entry bookkeeping** - Every debit has an equal credit
-- **Matching principle** - Expenses matched to revenue periods
-- **Revenue recognition** - Revenue recorded when earned
-- **Accrual accounting** - Transactions recorded when incurred
-
-## Limitations
-
-- Classification depends on description keywords and amount patterns
-- Complex multi-leg entries simplified to two-line format
-- Not intended for production use - demonstration only
-- Some edge cases may need manual adjustment
+**[View Live Demo](https://jdmc24.github.io/Basis-Deployed-Intelligence-Application/agents/journal-entry-generator/)**
 
 ---
 
-*Part of the [Basis Target Intelligence Map](../../) project*
+## Overview
+
+This agent analyzes transactions and generates proper double-entry journal entries with appropriate debit and credit accounts. It demonstrates how AI can automate the creation of accounting records while maintaining GAAP compliance.
+
+## Features
+
+- **Multi-Engine Processing** - Choose between Rules, Hybrid, Ollama, or OpenAI
+- **Double-Entry Generation** - Automatic debit/credit account selection
+- **Transaction Type Detection** - Infers type from description and amount
+- **AI Explanations** - LLM-generated reasoning for each entry
+- **Eval Suite** - Test entry accuracy against labeled data
+- **Sample Scenarios** - Simple and complex transaction sets
+
+## Processing Engines
+
+| Engine | Icon | Description | Best For |
+|--------|------|-------------|----------|
+| **Rules** | ⚡ | Pattern-based account mapping | Speed, consistency |
+| **Hybrid** | 🔀 | Rules first, LLM for complex | Production balance |
+| **Ollama** | 🦙 | Local LLM (Llama, Mistral, etc.) | Local testing |
+| **OpenAI** | 🤖 | GPT-4o-mini via API | Complex scenarios |
+
+## Supported Transaction Types
+
+| Type | Debit Account | Credit Account |
+|------|---------------|----------------|
+| **Receipt** | Cash | Accounts Receivable |
+| **Expense** | Operating Expenses | Cash |
+| **Payroll** | Salaries & Wages | Cash |
+| **Payroll Taxes** | Payroll Tax Expense | Cash |
+| **Asset Purchase** | Fixed Assets | Cash |
+| **Prepaid Expense** | Prepaid Expenses | Cash |
+| **Depreciation** | Depreciation Expense | Accumulated Depreciation |
+| **Inventory** | Inventory | Cash |
+| **COGS** | Cost of Goods Sold | Inventory |
+| **Loan Payment** | Notes Payable | Cash |
+| **Deferred Revenue** | Cash | Deferred Revenue |
+| **Revenue Recognition** | Deferred Revenue | Service Revenue |
+| **Dividend** | Retained Earnings | Dividends Payable |
+
+## Chart of Accounts
+
+The agent maps to a standard chart of accounts:
+
+**Assets**: Cash, Accounts Receivable, Inventory, Prepaid Expenses, Fixed Assets
+**Contra-Assets**: Accumulated Depreciation, Allowance for Doubtful Accounts
+**Liabilities**: Accounts Payable, Accrued Expenses, Deferred Revenue, Notes Payable
+**Equity**: Retained Earnings, Dividends Payable
+**Revenue**: Service Revenue, Interest Income
+**Expenses**: Operating, Salaries, Depreciation, Interest, Utilities, etc.
+
+## Eval Suite
+
+The built-in evaluation suite tests entry generation accuracy:
+
+- **12 Test Cases** - Transactions with known correct entries
+- **Debit Accuracy** - Correct debit account selection rate
+- **Credit Accuracy** - Correct credit account selection rate
+- **Type Detection** - Transaction type inference accuracy
+- **Overall Score** - Combined accuracy metric
+
+## Tech Stack
+
+- **Vanilla JavaScript** - No framework dependencies
+- **OpenAI API** - GPT-4o-mini for cloud LLM
+- **Ollama** - Local LLM inference (localhost:11434)
+- **CSS Variables** - Basis-inspired dark theme
+
+---
+
+*Created by Jake McCorkle as part of the Deployed Intelligence project application for Basis.*

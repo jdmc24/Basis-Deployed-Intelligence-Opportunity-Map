@@ -1,96 +1,81 @@
 # Bank Reconciliation Agent
 
-An AI-powered agent that automatically matches bank statement transactions to book entries and identifies discrepancies. Built as a demonstration of accounting workflow automation.
+An AI-powered agent that automatically matches bank statement transactions to book entries and identifies discrepancies. Supports multiple processing engines including rule-based matching and LLM-powered analysis.
 
-## How It Works
-
-The agent uses **smart matching** to pair transactions across two data sources:
-
-### Matching Algorithm
-
-Each potential match is scored using multiple signals:
-
-| Signal | Weight | Description |
-|--------|--------|-------------|
-| Amount | 50 pts | Exact amount match (most reliable) |
-| Reference | 30 pts | Matching reference/check numbers |
-| Date | 15 pts | Same day or within 3-5 days |
-| Description | 10 pts | Common words in vendor names |
-
-Transactions scoring ≥50 points are considered matched.
-
-### Discrepancy Detection
-
-The agent identifies four types of issues:
-
-| Type | Description | Suggested Fix |
-|------|-------------|---------------|
-| **Missing from Books** | Transaction on bank statement but not recorded | Record the transaction |
-| **Missing from Bank** | Recorded in books but not on statement | Verify if cleared or voided |
-| **Amount Mismatch** | Same transaction, different amounts | Investigate the difference |
-| **Duplicate Entry** | Same transaction recorded multiple times | Remove extra occurrences |
-
-## Features
-
-- **Two-file upload** - Separate bank statement and book entries CSVs
-- **Smart matching** - Multi-signal scoring algorithm
-- **Summary dashboard** - Transaction counts and financial totals at a glance
-- **Drill-down details** - Click any discrepancy for full details
-- **AI suggestions** - Optional OpenAI integration for context-aware fix recommendations
-- **Two sample scenarios** - Clean (4 issues) and Messy (12+ issues)
-
-## Usage
-
-1. Open `index.html` in a browser
-2. Upload bank statement CSV and book entries CSV (or click a sample scenario)
-3. Click "Reconcile Transactions"
-4. Review summary cards for overview
-5. Click individual discrepancies to see details and suggested fixes
-6. (Optional) Add OpenAI API key for AI-powered suggestions
-
-## CSV Format
-
-### Bank Statement
-```csv
-date,description,amount,reference,type
-2024-01-02,STRIPE TRANSFER,4250.00,STR-001,deposit
-2024-01-03,GUSTO PAYROLL,-3200.00,PAY-001,withdrawal
-```
-
-### Book Entries
-```csv
-date,description,amount,reference,account,category
-2024-01-02,Stripe Revenue,4250.00,STR-001,Checking,Revenue
-2024-01-03,Gusto - Payroll,-3200.00,PAY-001,Checking,Payroll
-```
-
-## Sample Data
-
-Two scenarios demonstrate the agent's capabilities:
-
-### Clean Scenario
-- ~25 transactions in each file
-- 4 discrepancies to find
-- Tests accuracy on well-organized data
-
-### Messy Scenario
-- ~35-40 transactions with variations
-- 12+ discrepancies including duplicates, mismatches, missing entries
-- Tests robustness with real-world messy data
-
-## Technical Details
-
-- Pure HTML/CSS/JavaScript (no build step)
-- Runs entirely in browser
-- OpenAI API calls made client-side (key never stored)
-- Dark theme matching the main Basis Target Map dashboard
-
-## Limitations
-
-- Matching depends on consistent reference numbers or amounts
-- Large files (1000+ transactions) may be slow in browser
-- Not intended for production use - demonstration only
+**[View Live Demo](https://jdmc24.github.io/Basis-Deployed-Intelligence-Application/agents/bank-reconciliation/)**
 
 ---
 
-*Part of the [Basis Target Intelligence Map](../../) project*
+## Overview
+
+This agent compares bank statement data against accounting book entries, automatically matching transactions and flagging discrepancies that need human review. It demonstrates how AI can automate the tedious reconciliation process.
+
+## Features
+
+- **Multi-Engine Processing** - Choose between Rules, Hybrid, Ollama, or OpenAI
+- **Smart Matching** - Multi-signal scoring algorithm
+- **Discrepancy Detection** - Automatically flags mismatches and duplicates
+- **Action Buttons** - Resolve discrepancies with one click
+- **Eval Suite** - Test matching accuracy against labeled data
+- **Dual Upload** - Load bank statement and book entries separately
+
+## Processing Engines
+
+| Engine | Icon | Description | Best For |
+|--------|------|-------------|----------|
+| **Rules** | ⚡ | Multi-signal scoring algorithm | Speed, deterministic |
+| **Hybrid** | 🔀 | Rules first, LLM for uncertain | Production balance |
+| **Ollama** | 🦙 | Local LLM (Llama, Mistral, etc.) | Local testing |
+| **OpenAI** | 🤖 | GPT-4o-mini via API | Fuzzy matching |
+
+## Matching Algorithm
+
+The rules-based engine scores potential matches using multiple signals:
+
+| Signal | Weight | Description |
+|--------|--------|-------------|
+| **Amount** | 50 pts | Exact amount match (most reliable) |
+| **Reference** | 30 pts | Matching reference/check numbers |
+| **Date** | 15 pts | Same day or within 3-5 days |
+| **Description** | 10 pts | Common words in vendor names |
+
+Transactions scoring ≥50 points are considered matched.
+
+### LLM Matching
+
+When using OpenAI or Ollama engines, the LLM analyzes:
+- Semantic similarity between descriptions
+- Date proximity reasoning
+- Amount matching with tolerance
+- Reference number correlation
+
+This catches matches that rule-based scoring might miss, like "DELTA AIR" matching "Delta - Client Travel".
+
+## Discrepancy Types
+
+| Type | Description | Suggested Action |
+|------|-------------|------------------|
+| **Missing from Books** | Bank transaction with no book match | Record the transaction |
+| **Missing from Bank** | Book entry with no bank match | Verify timing, investigate |
+| **Duplicate** | Same transaction appears multiple times | Remove duplicate |
+| **Amount Mismatch** | Matched but amounts differ | Investigate variance |
+
+## Eval Suite
+
+The built-in evaluation suite tests matching accuracy:
+
+- **15 Test Transactions** - Bank and book entries with known correct matches
+- **Match Accuracy** - Percentage of correctly paired transactions
+- **Precision Score** - False positive rate measurement
+- **Discrepancy Detection** - Verifies intentional mismatches are caught
+
+## Tech Stack
+
+- **Vanilla JavaScript** - No framework dependencies
+- **OpenAI API** - GPT-4o-mini for cloud LLM
+- **Ollama** - Local LLM inference (localhost:11434)
+- **CSS Variables** - Basis-inspired dark theme
+
+---
+
+*Created by Jake McCorkle as part of the Deployed Intelligence project application for Basis.*

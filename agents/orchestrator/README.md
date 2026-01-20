@@ -1,145 +1,107 @@
 # Multi-Agent Orchestrator
 
-A 3-tier multi-agent orchestration system that mirrors Basis's production architecture for end-to-end bookkeeping automation.
+A 3-tier multi-agent orchestration system that mirrors Basis's production architecture for end-to-end bookkeeping automation. Supports multiple processing engines including rule-based patterns and LLM-powered classification.
 
-## Architecture Overview
+**[View Live Demo](https://jdmc24.github.io/Basis-Deployed-Intelligence-Application/agents/orchestrator/)**
 
-This implementation follows the same hierarchy described in the [OpenAI case study on Basis](https://openai.com/index/basis/):
+---
+
+## Overview
+
+This orchestrator coordinates multiple specialized AI agents to process a complete bookkeeping workflow: classify transactions, generate journal entries, and reconcile against bank statements. It demonstrates the same hierarchical architecture described in the [OpenAI case study on Basis](https://openai.com/index/basis/).
+
+## Features
+
+- **3-Tier Architecture** - Coordination → Supervision → Sub-Agents
+- **Multi-Engine Processing** - Choose between Rules, Hybrid, Ollama, or OpenAI
+- **Real-Time Activity Log** - Watch agents communicate and delegate
+- **Visual Architecture Diagram** - See which agents are active
+- **End-to-End Workflow** - Classification → Journal Entries → Reconciliation
+- **Sample Data** - 35 transactions from a consulting firm
+
+## Architecture
 
 ```
                     ┌─────────────────────────┐
-                    │   Coordination Agent    │  ← Layer 1: Routes tasks, spawns supervisors
+                    │   Coordination Agent    │  ← Layer 1: Routes tasks
                     └───────────┬─────────────┘
                                 │
             ┌───────────────────┼───────────────────┐
             │                                       │
             ▼                                       ▼
 ┌───────────────────────┐             ┌───────────────────────┐
-│ Data Entry Supervisor │             │ Verification Supervisor│  ← Layer 2: Manages sub-agents
+│ Data Entry Supervisor │             │ Verification Supervisor│  ← Layer 2
 └───────────┬───────────┘             └───────────┬───────────┘
             │                                      │
     ┌───────┴───────┐                              │
-    │               │                              │
     ▼               ▼                              ▼
-┌──────────┐  ┌──────────┐                  ┌──────────────────┐
-│Classifier│  │ Journal  │                  │ Bank Reconciler  │  ← Layer 3: Specialized workers
-└──────────┘  │ Entry    │                  └──────────────────┘
-              └──────────┘
+┌─────────┐   ┌─────────┐                   ┌─────────────┐
+│Classifier│   │ Journal │                   │Reconciliation│  ← Layer 3
+│  Agent   │   │  Agent  │                   │    Agent     │
+└─────────┘   └─────────┘                   └─────────────┘
 ```
 
-## The 3-Tier Pattern
-
-| Layer | Role | Implementation |
-|-------|------|---------------|
-| **Coordination Agent** | Analyzes task complexity, spawns supervisors | Orchestrator core logic |
-| **Supervising Agents** | Break down tasks, delegate to sub-agents | Data Entry + Verification Supervisors |
-| **Sub-Agents** | Execute specialized tasks | Classifier, Journal Entry, Reconciliation |
-
 ### Layer 1: Coordination Agent
-- Receives the incoming task (bank statement)
-- Analyzes complexity and required operations
+- Receives the initial task (process bank statement)
+- Analyzes complexity and determines required capabilities
 - Spawns appropriate supervising agents
 - Aggregates final results
 
 ### Layer 2: Supervising Agents
-
-**Data Entry Supervisor**
-- Manages the data processing pipeline
-- Coordinates Transaction Classifier → Journal Entry Generator
-- Reports completion to Coordination Agent
-
-**Verification Supervisor**
-- Manages validation and reconciliation
-- Delegates to Bank Reconciliation sub-agent
-- Reports discrepancies to Coordination Agent
+- **Data Entry Supervisor**: Manages classification and journal entry generation
+- **Verification Supervisor**: Manages reconciliation and validation
 
 ### Layer 3: Sub-Agents
+- **Transaction Classifier**: Categorizes transactions
+- **Journal Entry Generator**: Creates double-entry records
+- **Bank Reconciliation**: Matches and validates transactions
 
-**Transaction Classifier**
-- Input: Raw bank transactions
-- Output: Categorized transactions with confidence scores
-- Reports to: Data Entry Supervisor
+## Processing Engines
 
-**Journal Entry Generator**
-- Input: Classified transactions
-- Output: Double-entry journal entries
-- Reports to: Data Entry Supervisor
+| Engine | Icon | Description | Best For |
+|--------|------|-------------|----------|
+| **Rules** | ⚡ | Pattern-based processing | Speed, consistency |
+| **Hybrid** | 🔀 | Rules first, LLM for ambiguous | Production balance |
+| **Ollama** | 🦙 | Local LLM (Llama, Mistral, etc.) | Local testing |
+| **OpenAI** | 🤖 | GPT-4o-mini via API | Highest accuracy |
 
-**Bank Reconciliation**
-- Input: Bank statement + Journal entries
-- Output: Reconciliation report with discrepancies
-- Reports to: Verification Supervisor
+The selected engine is used by the Transaction Classifier sub-agent. Journal entries and reconciliation use rule-based logic.
 
-## Features
+## Workflow Steps
 
-### Real-Time Agent Activity Log
-Watch the multi-agent communication in real-time:
-- **Purple** entries: Coordination Agent decisions
-- **Yellow** entries: Supervisor task delegation
-- **Teal** entries: Sub-agent execution
+1. **Coordination Agent** analyzes the task and spawns supervisors
+2. **Data Entry Supervisor** receives delegation
+3. **Transaction Classifier** categorizes all transactions
+4. **Journal Entry Generator** creates double-entry records
+5. **Data Entry Supervisor** reports completion
+6. **Verification Supervisor** receives delegation
+7. **Bank Reconciliation** matches and validates
+8. **Coordination Agent** aggregates results
 
-### Visual Architecture Diagram
-- Nodes light up as each agent becomes active
-- Shows delegation flow from coordination → supervisor → sub-agent
-- Nodes turn green upon completion
+## Output Summary
 
-### Hierarchical Workflow Steps
-- Indentation shows the agent hierarchy
-- Coordination (no indent) → Supervisors (1 indent) → Sub-agents (2 indent)
-- Each step shows status and results
+After processing, the orchestrator displays:
+- Total transactions processed
+- Revenue and expense totals
+- Journal entries generated
+- Reconciliation percentage
+- Items requiring review
 
-## Workflow Execution
+## Why This Architecture?
 
-1. **Coordination Agent** receives bank statement
-   - Analyzes: "35 transactions need: Classification → Journaling → Reconciliation"
-   - Spawns: Data Entry Supervisor, Verification Supervisor
+This mirrors how Basis structures their production system:
+- **Scalability**: Each agent can be scaled independently
+- **Specialization**: Agents are experts in their domain
+- **Reliability**: Supervisors can retry failed sub-agent tasks
+- **Observability**: Clear audit trail of agent decisions
 
-2. **Data Entry Supervisor** manages data processing
-   - Delegates to Transaction Classifier
-   - Receives results, delegates to Journal Entry Generator
-   - Reports completion to Coordination Agent
+## Tech Stack
 
-3. **Verification Supervisor** manages validation
-   - Delegates to Bank Reconciliation
-   - Reports discrepancies to Coordination Agent
-
-4. **Coordination Agent** aggregates results
-   - Compiles unified results from all supervisors
-   - Presents final dashboard
-
-## Sample Data
-
-35 transactions from a consulting firm's January bank statement:
-
-| Category | Count | Examples |
-|----------|-------|----------|
-| Revenue | 8 | Stripe transfers, client wires |
-| Payroll | 6 | Gusto payroll + taxes |
-| Software | 8 | Adobe, Slack, AWS, etc. |
-| Travel | 4 | Delta, Marriott, Uber |
-| Operating | 9 | Rent, insurance, utilities |
-
-**Built-in discrepancies for demo:**
-- Duplicate transaction (INV1002)
-- Some medium-confidence classifications
-
-## Why This Architecture Matters
-
-This 3-tier hierarchy enables:
-
-1. **Scalability** - Add more supervisors/sub-agents without changing coordination logic
-2. **Specialization** - Each sub-agent is optimized for its specific task
-3. **Error Isolation** - Failures in one sub-agent don't crash the system
-4. **Parallel Processing** - Supervisors can run sub-agents concurrently
-5. **Human-in-the-loop** - Easy to add approval steps at supervisor level
-
-## Technical Details
-
-- Pure HTML/CSS/JavaScript (no build step)
-- Runs entirely in browser
-- Real data flows between agent layers
-- Simulated async delays for realistic visualization
+- **Vanilla JavaScript** - No framework dependencies
+- **OpenAI API** - GPT-4o-mini for cloud LLM
+- **Ollama** - Local LLM inference (localhost:11434)
+- **CSS Variables** - Basis-inspired dark theme
 
 ---
 
-*Part of the [Basis Deployed Intelligence](../../) application for Jake McCorkle*
+*Created by Jake McCorkle as part of the Deployed Intelligence project application for Basis.*
